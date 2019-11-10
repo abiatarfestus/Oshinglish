@@ -3,13 +3,18 @@ from tkinter import*
 root = Tk()
 root.title("Oshinglish Dictionary First Edition")
 root.configure(background = "#0970d2")
-root.geometry("800x800")
+root.geometry("700x700+300+0")
+variable = StringVar(root)
+variable.set("one") # default value
+
 
 nameWithLogo = Label(root, text = "Oshinglish Dictionary First Edition", font = "Times 28", background = "#982901")
 nameWithLogo.grid()
 
 #options = OptionMenu(root, variable = 3)
 #options.grid(columnspan = 3, row = 5, sticky = W)
+options = OptionMenu(root, variable, "one", "two", "three")
+options.grid()
 
 infoMenu = Menubutton(root)
 infoMenu.grid(column = 3, row = 5)
