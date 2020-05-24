@@ -16,22 +16,22 @@ CREATE TABLE suppliers (
        ON DELETE CASCADE
 );"""
 
-c.execute("""PRAGMA foreign_keys = ON;
+c.executescript("""PRAGMA foreign_keys = ON;
             CREATE TABLE IF NOT EXISTS english (
-            id INTEGER UNIQUE AUTOINCREMENT,
-            word TEXT PRIMARY KEY);
+            id INTEGER PRIMARY KEY,
+            word TEXT NOT NULL UNIQUE);
 
             CREATE TABLE IF NOT EXISTS oshindonga (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,            
+            id INTEGER PRIMARY KEY,            
             word TEXT NOT NULL,
-            english_word TEXT NOT NULL,
-            FOREIGN KEY (english_word)
-            REFERENCES english (word)
+            english_id INTEGER NOT NULL,
+            FOREIGN KEY (english_id)
+            REFERENCES english (id)
                 ON UPDATE CASCADE
                 ON DELETE RESTRICT);
 
             CREATE TABLE IF NOT EXISTS nouns (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             english_id TEXT NOT NULL,
             oshindonga_id INTEGER NOT NULL,
             english_definion TEXT NOT NULL,
@@ -39,16 +39,16 @@ c.execute("""PRAGMA foreign_keys = ON;
             oshindonga_definion TEXT NOT NULL,
             oshindonga_example TEXT NOT NULL,
             FOREIGN KEY (english_id)
-            REFERENCES english (word)
+            REFERENCES english (id)
                 ON UPDATE CASCADE
-                ON DELETE RESTRICT),
+                ON DELETE RESTRICT,
             FOREIGN KEY (oshindonga_id)
             REFERENCES oshindonga (id)
                 ON UPDATE CASCADE
-                ON DELETE RESTRICT));
+                ON DELETE RESTRICT);
 
             CREATE TABLE IF NOT EXISTS verbs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             english_id TEXT NOT NULL,
             oshindonga_id INTEGER NOT NULL,
             english_definion TEXT NOT NULL,
@@ -56,37 +56,66 @@ c.execute("""PRAGMA foreign_keys = ON;
             oshindonga_definion TEXT NOT NULL,
             oshindonga_example TEXT NOT NULL,
             FOREIGN KEY (english_id)
-            REFERENCES english (word)
+            REFERENCES english (id)
                 ON UPDATE CASCADE
-                ON DELETE RESTRICT),
+                ON DELETE RESTRICT,
             FOREIGN KEY (oshindonga_id)
             REFERENCES oshindonga (id)
                 ON UPDATE CASCADE
-                ON DELETE RESTRICT))
+                ON DELETE RESTRICT)
             """)
 
-
-
-def insert_engWord(word):
-
+def insert_english_word(word):
+    #Remember to LOWERCASE word
     with conn:
+        c.execute("INSERT INTO english (word) VALUES (?)", (word,))
 
-        c.execute("INSERT INTO employees VALUES (:first, :last, :pay)", {'first': emp.first, 'last': emp.last, 'pay': emp.pay})
+def insert_oshindonga_word(word, engId):
+    with conn:
+        c.execute("INSERT INTO oshindonga (word, english_id) VALUES (?,?)", (word, engId))
 
+def insert_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
+    with conn:
+        c.execute("""INSERT INTO nouns (english_id, oshindonga_id, english_definition,
+                    english_example, oshindonga_definition, oshindonga_example) 
+                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
 
+def insert_verb_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
+    with conn:
+        c.execute("""INSERT INTO nouns (english_id, oshindonga_id, english_definition,
+                    english_example, oshindonga_definition, oshindonga_example) 
+                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
 
-
-
-def get_emps_by_name(lastname):
-
-    c.execute("SELECT * FROM employees WHERE last=:last", {'last': lastname})
-
+def get_definition_by_english_word(word):
+    c.execute("SELECT * FROM nouns WHERE english_id=:english_id", {'english_id': word})
     return c.fetchall()
 
+def remove_oshindonga_word(ref):
+    with conn:
+        c.execute("DELETE FROM oshindonga WHERE english_id = (?)", (ref,))
+
+words = ["lightining", "scar", "ball", "person", "play", "phone", "car", "speak", "cup", "rain"]
+iitya = ["olwaadhi", "oshiyadhi", "etanga", "omuntu", "dhana", "ongodhi", "ohauto", "popya", "ekopi", "omvula"]
+
+'''engId = 1
+for word in iitya:
+    print(engId)
+    insert_oshindonga_word(word, engId)
+    engId += 1
+    print("after")'''
+#insert_oshindonga_word("oshinyandwa", 5)
+
+#remove_oshindonga_word(1)
+
+#english = c.execute("SELECT * FROM english")
+#print(c.fetchall())
+oshindonga = c.execute("SELECT * FROM oshindonga")
+print(c.fetchall())
+
+conn.close()
 
 
-
-
+'''
 def update_pay(emp, pay):
 
     with conn:
@@ -109,12 +138,7 @@ def remove_emp(emp):
 
                   {'first': emp.first, 'last': emp.last})
 
-
-conn.close()
-
-
-
-
+'''
 
 """ root = Tk()
 root.title("Oshinglish Dictionary First Edition")
@@ -157,3 +181,28 @@ root.mainloop() """
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             english TEXT NOT NULL,
             oshindonga TEXT NOT NULL);'''
+
+'''
+def insert_english_word(word):
+    #Remember to LOWERCASE word
+    with conn:
+        c.execute("INSERT INTO english VALUES (:word)", {'word': word})
+
+def insert_oshindonga_word(word, engId):
+    with conn:
+        c.execute("INSERT INTO oshindonga VALUES (:word, :english_id)", {'word': word, 'english_id': engId})
+
+def insert_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
+    with conn:
+        c.execute("""INSERT INTO nouns VALUES (:english_id, :oshindonga_id, :english_definition,
+                    :english_example, :oshindonga_definition, :oshindonga_example)""", 
+                    {'english_id': engId, 'oshindonga_id': oshId, 'english_definition': engdef,
+                    'english_example': engEx, 'oshindonga_definition': oshDef, 'oshindonga_example': oshEx})
+
+def insert_verb_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
+    with conn:
+        c.execute("""INSERT INTO verbs VALUES (:english_id, :oshindonga_id, :english_definition,
+                    :english_example, :oshindonga_definition, :oshindonga_example)""", 
+                    {'english_id': engId, 'oshindonga_id': oshId, 'english_definition': engdef,
+                    'english_example': engEx, 'oshindonga_definition': oshDef, 'oshindonga_example': oshEx})
+'''
