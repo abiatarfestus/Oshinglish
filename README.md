@@ -1,0 +1,2 @@
+# Oshinglish
+English-Oshindonga dictionary
