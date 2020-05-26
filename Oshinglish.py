@@ -34,9 +34,9 @@ c.executescript("""PRAGMA foreign_keys = ON;
             id INTEGER PRIMARY KEY,
             english_id TEXT NOT NULL,
             oshindonga_id INTEGER NOT NULL,
-            english_definion TEXT NOT NULL,
+            english_definition TEXT NOT NULL,
             english_example TEXT NOT NULL,
-            oshindonga_definion TEXT NOT NULL,
+            oshindonga_definition TEXT NOT NULL,
             oshindonga_example TEXT NOT NULL,
             FOREIGN KEY (english_id)
             REFERENCES english (id)
@@ -51,9 +51,9 @@ c.executescript("""PRAGMA foreign_keys = ON;
             id INTEGER PRIMARY KEY,
             english_id TEXT NOT NULL,
             oshindonga_id INTEGER NOT NULL,
-            english_definion TEXT NOT NULL,
+            english_definition TEXT NOT NULL,
             english_example TEXT NOT NULL,
-            oshindonga_definion TEXT NOT NULL,
+            oshindonga_definition TEXT NOT NULL,
             oshindonga_example TEXT NOT NULL,
             FOREIGN KEY (english_id)
             REFERENCES english (id)
@@ -65,52 +65,101 @@ c.executescript("""PRAGMA foreign_keys = ON;
                 ON DELETE RESTRICT)
             """)
 
-def insert_english_word(word):
+#Functions
+#Add an English word
+def add_english_word(word):
     #Remember to LOWERCASE word
     with conn:
         c.execute("INSERT INTO english (word) VALUES (?)", (word,))
 
-def insert_oshindonga_word(word, engId):
+#Add Oshindonga word
+def add_oshindonga_word(word, engId):
     with conn:
         c.execute("INSERT INTO oshindonga (word, english_id) VALUES (?,?)", (word, engId))
 
-def insert_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
+#Add a noun definiton
+def add_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
     with conn:
         c.execute("""INSERT INTO nouns (english_id, oshindonga_id, english_definition,
                     english_example, oshindonga_definition, oshindonga_example) 
                     VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
 
-def insert_verb_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
+#Add a verb definition
+def add_verb_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
     with conn:
-        c.execute("""INSERT INTO nouns (english_id, oshindonga_id, english_definition,
+        c.execute("""INSERT INTO verbs (english_id, oshindonga_id, english_definition,
                     english_example, oshindonga_definition, oshindonga_example) 
                     VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
 
+#Get a definition
 def get_definition_by_english_word(word):
+    c.execute("SELECT id FROM english WHERE word=(?)", (word,))
+    result = c.fetchone()
+    if result == None:
+        return "Word not found"
+    else:
+        return result[0]     
+
+#Search part of speech tables for definitions
+def get_all_definitions(wordID):
+    definitions = []
+    tables = ["nouns", "verbs"]
+    definition = []
+    squery = ""
+    for table in tables:
+        squery ="SELECT * FROM {} WHERE english_id=(?)".format(table)
+        c.execute(squery, (wordID,))
+        definition = c.fetchall()
+        definitions.append(definition)
+    return definitions
+
+def get_definition_by_oshindonga_word(word):
     c.execute("SELECT * FROM nouns WHERE english_id=:english_id", {'english_id': word})
     return c.fetchall()
 
-def remove_oshindonga_word(ref):
+def remove_oshindonga_word(id):
     with conn:
-        c.execute("DELETE FROM oshindonga WHERE english_id = (?)", (ref,))
+        c.execute("DELETE FROM oshindonga WHERE id = (?)", (id,))
+
+def remove_english_word(id):
+    with conn:
+        c.execute("DELETE FROM english WHERE id = (?)", (id,))
+
+def remove_definition_word(table, id):
+    with conn:
+        c.execute("DELETE FROM (?) WHERE id = (?)", (table, id,))
 
 words = ["lightining", "scar", "ball", "person", "play", "phone", "car", "speak", "cup", "rain"]
 iitya = ["olwaadhi", "oshiyadhi", "etanga", "omuntu", "dhana", "ongodhi", "ohauto", "popya", "ekopi", "omvula"]
 
-'''engId = 1
+#Testing adding words to database
+'''
+#adding words to English table
+for word in words:
+    add_english_word(word)
+
+#Adding words to Oshindonga table
+engId = 1
 for word in iitya:
-    print(engId)
-    insert_oshindonga_word(word, engId)
+    add_oshindonga_word(word, engId)
     engId += 1
-    print("after")'''
 #insert_oshindonga_word("oshinyandwa", 5)
 
 #remove_oshindonga_word(1)
 
-#english = c.execute("SELECT * FROM english")
-#print(c.fetchall())
-oshindonga = c.execute("SELECT * FROM oshindonga")
+english = c.execute("SELECT * FROM english")
 print(c.fetchall())
+oshindonga = c.execute("SELECT * FROM oshindonga")
+print(c.fetchall())'''
+
+#add_noun_definition(1, 1, "Light produced by thunderstorm", "The rain had fierce lightnings", 
+ #                   "Okashelu haka zi kiikogo", "Olwaadhi olwa kwata imuna")
+
+#Testing search word in English table
+#print(get_definition_by_english_word("lightining"))
+
+#Testing search definitions in parts of speech tables
+print(get_all_definitions(1))
 
 conn.close()
 
