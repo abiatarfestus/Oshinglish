@@ -1,2 +1,2 @@
 # Oshinglish
-English-Oshindonga dictionary
+This is a bilingual dictionary for English and Oshindonga
