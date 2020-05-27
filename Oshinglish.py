@@ -85,37 +85,47 @@ def add_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
                     VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
 
 #Add a verb definition
-def add_verb_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
+def add_verb_definition(engId, oshId, engDef, engEx, oshDef, oshEx):
     with conn:
         c.execute("""INSERT INTO verbs (english_id, oshindonga_id, english_definition,
                     english_example, oshindonga_definition, oshindonga_example) 
-                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
+                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engDef, engEx, oshDef, oshEx))
 
 #Get a definition
-def get_definition_by_english_word(word):
+def find_english_word(word): #Returns input value/argument for find_definition if word found
     c.execute("SELECT id FROM english WHERE word=(?)", (word,))
     result = c.fetchone()
     if result == None:
         return "Word not found"
     else:
-        return result[0]     
+        return result[0] #Retuns id (english_id)
+
+def find_oshindonga_word(word): #Returns input value/argument for find_definition if word found
+    c.execute("SELECT english_id FROM oshindonga WHERE word=(?)", (word,))
+    result = c.fetchone()
+    if result == None:
+        return "Oshitya inashi monika"
+    else:
+        return result[0]    #Returns english_id, which should be passed to find definition
 
 #Search part of speech tables for definitions
-def get_all_definitions(wordID):
+def find_definition(wordID):
     definitions = []
-    tables = ["nouns", "verbs"]
+    tables = ["noun", "verb"]
     definition = []
     squery = ""
     for table in tables:
-        squery ="SELECT * FROM {} WHERE english_id=(?)".format(table)
+        squery ="SELECT * FROM {} WHERE english_id=(?)".format(table + "s") #Assign select statement to squery (for dynamic table selectio)
         c.execute(squery, (wordID,))
         definition = c.fetchall()
-        definitions.append(definition)
+        if definition != []:
+            definitions.extend([table.capitalize()+":"]) #Adds Part of speech before definitons
+            #definitions.extend([table.capitalize()+":", definition])
+            for i in definition[0]: #Takes tuple elements and add them to definitions
+                definitions.append(i)
+    if definitions == []:
+        return "No definition found"
     return definitions
-
-def get_definition_by_oshindonga_word(word):
-    c.execute("SELECT * FROM nouns WHERE english_id=:english_id", {'english_id': word})
-    return c.fetchall()
 
 def remove_oshindonga_word(id):
     with conn:
@@ -125,9 +135,25 @@ def remove_english_word(id):
     with conn:
         c.execute("DELETE FROM english WHERE id = (?)", (id,))
 
-def remove_definition_word(table, id):
+def remove_definition(table, id):
     with conn:
-        c.execute("DELETE FROM (?) WHERE id = (?)", (table, id,))
+        squery ="SELECT * FROM {} WHERE english_id = (?)".format(table)
+        c.execute(squery, (id,))
+
+#Update/modify words and definitions
+def update_english_word(word, id):
+    with conn:
+        c.execute("UPDATE english SET word = (?) WHERE id = (?)", (word, id))
+
+def update_oshindonga_word(word, id):
+    with conn:
+        c.execute("UPDATE oshindonga SET word = (?) WHERE id = (?)", (word, id))
+
+def update_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx, id):
+    with conn:
+        uquery = """UPDATE {} SET english_id = (?), oshindonga_id = (?), english_definition = (?), 
+        english_example = (?), oshindonga_definition = (?), oshindonga_example = (?) WHERE id = (?)""".format(table)
+        c.execute(uquery, (engId, oshId, engDef, engEx, oshDef, oshEx, id))
 
 words = ["lightining", "scar", "ball", "person", "play", "phone", "car", "speak", "cup", "rain"]
 iitya = ["olwaadhi", "oshiyadhi", "etanga", "omuntu", "dhana", "ongodhi", "ohauto", "popya", "ekopi", "omvula"]
@@ -142,24 +168,32 @@ for word in words:
 engId = 1
 for word in iitya:
     add_oshindonga_word(word, engId)
-    engId += 1
-#insert_oshindonga_word("oshinyandwa", 5)
+    engId += 1'''
+#add_oshindonga_word("oshinyandwa", 5)
 
 #remove_oshindonga_word(1)
-
+'''
 english = c.execute("SELECT * FROM english")
 print(c.fetchall())
 oshindonga = c.execute("SELECT * FROM oshindonga")
 print(c.fetchall())'''
 
-#add_noun_definition(1, 1, "Light produced by thunderstorm", "The rain had fierce lightnings", 
- #                   "Okashelu haka zi kiikogo", "Olwaadhi olwa kwata imuna")
+#add_noun_definition(5, 5, "A drama played by actors", "They performed a play by Shakespeare", 
+                    #"Oshinyandwa tshi li kombinga yokahokololo", "Oya dhana oshinyandwa oshiwanawa")
+
+#add_verb_definition(5, 5, "To perform a drama or sport", "They played a good game", 
+                    #"Oku dhana uudhano nenge oshinyandwa", "Oya dhana uudhano uuwanawa")
 
 #Testing search word in English table
-#print(get_definition_by_english_word("lightining"))
+#print(get_definition_by_english_word("played"))
 
 #Testing search definitions in parts of speech tables
-print(get_all_definitions(1))
+print(find_definition(5))
+#print(find_oshindonga_word("oshinyandua"))
+#remove_definition("nouns", 7)
+#update_english_word("lightning", 1)
+#update_definition("verbs", 5, 5, "To take part in a game action", "They played a good game", 
+                    #"Oku dhana uudhano nenge oshinyandwa", "Oya dhana uudhano uuwanawa", 1)
 
 conn.close()
 
