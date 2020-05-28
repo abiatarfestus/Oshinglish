@@ -1,5 +1,38 @@
-#from tkinter import*
+from tkinter import*
 import sqlite3
+
+mainWindow = Tk()
+mainWindow.title("Oshinglish Dictionary First Edition")
+mainWindow.configure(background = "#0970d2")
+mainWindow.geometry("700x700+300+0")
+variable = StringVar(mainWindow)
+variable.set("one") # default value
+
+
+nameWithLogo = Label(mainWindow, text = "Oshinglish Dictionary First Edition", font = "Times 28", background = "#982901")
+nameWithLogo.grid()
+
+#options = OptionMenu(mainWindow, variable = 3)
+#options.grid(columnspan = 3, row = 5, sticky = W)
+options = OptionMenu(mainWindow, variable, "one", "two", "three")
+options.grid()
+
+infoMenu = Menubutton(mainWindow)
+infoMenu.grid(column = 3, row = 5)
+
+searchBox = Entry(mainWindow)
+searchBox.grid(columnspan = 11, row = 6, sticky = W)
+
+findButton = Button(mainWindow, text = "Find")
+findButton.grid(column = 9, row = 6)
+
+listLabel = Label(mainWindow, text = "List of words appears here", background = "white", height = 40)
+listLabel.grid()
+
+
+#definitionSpace = Label(mainWindow, text = "Definitions appear here")
+#definitionSpace.grid(columnspan = 15, rowspan = 15)
+
 
 conn = sqlite3.connect('dictionary.db')
 
@@ -188,7 +221,7 @@ print(c.fetchall())'''
 #print(get_definition_by_english_word("played"))
 
 #Testing search definitions in parts of speech tables
-print(find_definition(5))
+#print(find_definition(5))
 #print(find_oshindonga_word("oshinyandua"))
 #remove_definition("nouns", 7)
 #update_english_word("lightning", 1)
@@ -197,95 +230,4 @@ print(find_definition(5))
 
 conn.close()
 
-
-'''
-def update_pay(emp, pay):
-
-    with conn:
-
-        c.execute("""UPDATE employees SET pay = :pay
-
-                    WHERE first = :first AND last = :last""",
-
-                  {'first': emp.first, 'last': emp.last, 'pay': pay})
-
-
-
-
-
-def remove_emp(emp):
-
-    with conn:
-
-        c.execute("DELETE from employees WHERE first = :first AND last = :last",
-
-                  {'first': emp.first, 'last': emp.last})
-
-'''
-
-""" root = Tk()
-root.title("Oshinglish Dictionary First Edition")
-root.configure(background = "#0970d2")
-root.geometry("700x700+300+0")
-variable = StringVar(root)
-variable.set("one") # default value
-
-
-nameWithLogo = Label(root, text = "Oshinglish Dictionary First Edition", font = "Times 28", background = "#982901")
-nameWithLogo.grid()
-
-#options = OptionMenu(root, variable = 3)
-#options.grid(columnspan = 3, row = 5, sticky = W)
-options = OptionMenu(root, variable, "one", "two", "three")
-options.grid()
-
-infoMenu = Menubutton(root)
-infoMenu.grid(column = 3, row = 5)
-
-searchBox = Entry(root)
-searchBox.grid(columnspan = 11, row = 6, sticky = W)
-
-findButton = Button(root, text = "Find")
-findButton.grid(column = 9, row = 6)
-
-listLabel = Label(root, text = "List of words appears here", background = "white", height = 40)
-listLabel.grid()
-
-
-#definitionSpace = Label(root, text = "Definitions appear here")
-#definitionSpace.grid(columnspan = 15, rowspan = 15)
-
-
-
-root.mainloop() """
-
-'''
-            CREATE TABLE IF NOT EXISTS parts_of_speech (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            english TEXT NOT NULL,
-            oshindonga TEXT NOT NULL);'''
-
-'''
-def insert_english_word(word):
-    #Remember to LOWERCASE word
-    with conn:
-        c.execute("INSERT INTO english VALUES (:word)", {'word': word})
-
-def insert_oshindonga_word(word, engId):
-    with conn:
-        c.execute("INSERT INTO oshindonga VALUES (:word, :english_id)", {'word': word, 'english_id': engId})
-
-def insert_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
-    with conn:
-        c.execute("""INSERT INTO nouns VALUES (:english_id, :oshindonga_id, :english_definition,
-                    :english_example, :oshindonga_definition, :oshindonga_example)""", 
-                    {'english_id': engId, 'oshindonga_id': oshId, 'english_definition': engdef,
-                    'english_example': engEx, 'oshindonga_definition': oshDef, 'oshindonga_example': oshEx})
-
-def insert_verb_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
-    with conn:
-        c.execute("""INSERT INTO verbs VALUES (:english_id, :oshindonga_id, :english_definition,
-                    :english_example, :oshindonga_definition, :oshindonga_example)""", 
-                    {'english_id': engId, 'oshindonga_id': oshId, 'english_definition': engdef,
-                    'english_example': engEx, 'oshindonga_definition': oshDef, 'oshindonga_example': oshEx})
-'''
+mainWindow.mainloop()
