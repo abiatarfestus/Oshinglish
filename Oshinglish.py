@@ -1,37 +1,94 @@
-from tkinter import*
+import tkinter as tk
+#from tkinter import ttk
 import sqlite3
 
-mainWindow = Tk()
+mainWindow = tk.Tk()
 mainWindow.title("Oshinglish Dictionary First Edition")
-mainWindow.configure(background = "#0970d2")
-mainWindow.geometry("700x700+300+0")
-variable = StringVar(mainWindow)
-variable.set("one") # default value
+#mainWindow.configure(background = "#0970d2")
+mainWindow.geometry("900x600+300+0")
+#variable = StringVar(mainWindow)
+#variable.set("one") # default value
 
 
-nameWithLogo = Label(mainWindow, text = "Oshinglish Dictionary First Edition", font = "Times 28", background = "#982901")
-nameWithLogo.grid()
+#VARIABLES
+#Main window variables??
+inputLang = tk.StringVar() #variable for input language radiobuttons
+#inputLang.set("English")
+#FRAMES
+mainFrame = tk.Frame(mainWindow, relief=tk.RAISED, borderwidth=3)
+#mainFrame['padding'] = 5
+#mainFrame['borderwidth'] = 2
+mainFrame.grid(column=0, row=0, padx=5, pady=5)
 
-#options = OptionMenu(mainWindow, variable = 3)
-#options.grid(columnspan = 3, row = 5, sticky = W)
-options = OptionMenu(mainWindow, variable, "one", "two", "three")
-options.grid()
+topFrame = tk.Frame(mainFrame, relief=tk.RAISED, borderwidth=2)
+#mainFrame["padding"] = 5
+#topFrame['borderwidth'] = 2
+topFrame.grid(column=0, row=0)
 
-infoMenu = Menubutton(mainWindow)
-infoMenu.grid(column = 3, row = 5)
+leftFrame = tk.Frame(mainFrame, relief=tk.RAISED, borderwidth=2)
+#mainFrame["padding"] = 5
+#leftFrame['borderwidth'] = 2
+leftFrame.grid(column=0, row=1, padx=20, pady=20)
 
-searchBox = Entry(mainWindow)
-searchBox.grid(columnspan = 11, row = 6, sticky = W)
+rightFrame = tk.Frame(mainFrame, relief=tk.RAISED, borderwidth=2)
+#mainFrame["padding"] = 5
+#rightFrame['borderwidth'] = 2
+rightFrame.grid(column=1, row=1)
 
-findButton = Button(mainWindow, text = "Find")
-findButton.grid(column = 9, row = 6)
+bottomFrame = tk.Frame(mainFrame, relief=tk.RAISED, borderwidth=2)
+#mainFrame["padding"] = 5
+#bottomFrame['borderwidth'] = 2
+bottomFrame.grid(column=0, row=2)
 
-listLabel = Label(mainWindow, text = "List of words appears here", background = "white", height = 40)
-listLabel.grid()
+#LABELS
+#Main window labels
+logoLbl = tk.Label(topFrame, text = "Logo placeholder", background="blue", height=5)
+logoLbl.grid(column=0, row=0, sticky="w")
+#mainWindow.rowconfigure(1, weight=0, minsize=25) #Inserts an empty row btwn the 2 labels (NB: minsize is in pixels)
+titleLbl = tk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="white")
+titleLbl.grid(column=1, row=0, sticky="nsew")
+searchLbl = tk.Label(leftFrame, text = "Search word definition", background="white", height=2)
+searchLbl.grid(column=0, row=0, sticky="nsew", pady=2)
+contributeLbl = tk.Label(rightFrame, text = "Contribute to the dictionary", background="white", height=2)
+contributeLbl.grid(column=0, row=0, sticky="nsew", pady=2)
+inputLangLbl = tk.Label(leftFrame, text = "Choose input language", background="white", height=2)
+inputLangLbl.grid(column=0, row=1, sticky="nsew", pady=2)
+wordLbl = tk.Label(leftFrame, text = "Word/Oshitya", background="white")
+wordLbl.grid(column=0, row=3, sticky="nsew")
+definitionLbl = tk.Label(bottomFrame, text = "The definition wil appear here", background="white", width=100)
+definitionLbl.grid(column=0, row=0, sticky="nsew")
 
+#BUTTONS
+#Main window buttons
+#deleteDefBtn = tk.Button(rightFrame, text = "Delete definition from database")
+#deleteDefBtn.grid(column=9, row=2)
+searchBtn = tk.Button(leftFrame, text = "Search")
+searchBtn.grid(column=1, row=2)
+addEngBtn = tk.Button(rightFrame, text = "Add/update English word", height=5)
+addEngBtn.grid(column=0, row=1, sticky="nsew")
+addOshBtn = tk.Button(rightFrame, text = "Add/Update Oshindonga word")
+addOshBtn.grid(column=1, row=1, sticky="nsew")
+addDefBtn = tk.Button(rightFrame, text = "Add/Update definition")
+addDefBtn.grid(column=2, row=1, sticky="nsew")
+deleteWordBtn = tk.Button(rightFrame, text = "Delete word from database")
+deleteWordBtn.grid(column=3, row=1)
 
-#definitionSpace = Label(mainWindow, text = "Definitions appear here")
-#definitionSpace.grid(columnspan = 15, rowspan = 15)
+#RADIOBUTTONS
+#Main window radiobuttons
+englishRbtn = tk.Radiobutton(leftFrame, text="English", variable=inputLang, value="English")
+englishRbtn.grid(column=1, row=1, sticky="nsew")
+oshindongaRbtn = tk.Radiobutton(leftFrame, text="Oshindonga", variable=inputLang, value="Oshindonga")
+oshindongaRbtn.grid(column=2, row=1, sticky="nsew")
+
+#ENTRY WIDGETS
+#Main window entry widgets
+searchEbx = tk.Entry(leftFrame)
+searchEbx.grid(column=0, row=2, sticky="nsew", pady=2)
+
+#TEXT WIDGETS
+#OPTION MENUES
+#Main window option menues
+
 
 
 conn = sqlite3.connect('dictionary.db')
