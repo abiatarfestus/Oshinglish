@@ -1,93 +1,110 @@
 import tkinter as tk
-#from tkinter import ttk
+from tkinter import ttk
 import sqlite3
 
 mainWindow = tk.Tk()
 mainWindow.title("Oshinglish Dictionary First Edition")
 #mainWindow.configure(background = "#0970d2")
-mainWindow.geometry("900x600+300+0")
+#mainWindow.geometry("900x600+300+0")
 #variable = StringVar(mainWindow)
 #variable.set("one") # default value
 
+#Configuring column and row resizability
+mainWindow.columnconfigure(0, weight=1)
+mainWindow.rowconfigure(0, weight=1)
 
 #VARIABLES
 #Main window variables??
 inputLang = tk.StringVar() #variable for input language radiobuttons
 #inputLang.set("English")
 #FRAMES
-mainFrame = tk.Frame(mainWindow, relief=tk.RAISED, borderwidth=3)
-#mainFrame['padding'] = 5
-#mainFrame['borderwidth'] = 2
-mainFrame.grid(column=0, row=0, padx=5, pady=5)
+mainFrame = ttk.Frame(mainWindow, relief='raised', borderwidth=3)
+mainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
+#Configuring column and row resizability
+mainFrame.columnconfigure(0, weight=1)
+mainFrame.rowconfigure((0,1), weight=1)
+mainFrame.rowconfigure(2, weight=100)
 
-topFrame = tk.Frame(mainFrame, relief=tk.RAISED, borderwidth=2)
-#mainFrame["padding"] = 5
-#topFrame['borderwidth'] = 2
-topFrame.grid(column=0, row=0)
+topFrame = ttk.Frame(mainFrame, borderwidth=2)
+topFrame.grid(column=0, row=0, sticky='nesw')
+#Configuring column and row resizability
+topFrame.columnconfigure(1, weight=1)
+#topFrame.rowconfigure(0, weight=1)
 
-leftFrame = tk.Frame(mainFrame, relief=tk.RAISED, borderwidth=2)
-#mainFrame["padding"] = 5
-#leftFrame['borderwidth'] = 2
-leftFrame.grid(column=0, row=1, padx=20, pady=20)
+midFrame = ttk.Frame(mainFrame, borderwidth=2)
+midFrame.grid(column=0, row=1, sticky='nesw')
+#Configuring column and row resizability
+midFrame.columnconfigure((0,1), weight=1)
+midFrame.rowconfigure(0, weight=1)
 
-rightFrame = tk.Frame(mainFrame, relief=tk.RAISED, borderwidth=2)
-#mainFrame["padding"] = 5
-#rightFrame['borderwidth'] = 2
-rightFrame.grid(column=1, row=1)
+leftFrame = ttk.Frame(midFrame, borderwidth=2)
+leftFrame.grid(column=0, row=0, sticky='nesw')
+#Configuring column and row resizability
+leftFrame.columnconfigure((0), weight=1)
+#leftFrame.rowconfigure((0,1,2), weight=1)
 
-bottomFrame = tk.Frame(mainFrame, relief=tk.RAISED, borderwidth=2)
-#mainFrame["padding"] = 5
-#bottomFrame['borderwidth'] = 2
-bottomFrame.grid(column=0, row=2)
+rightFrame = ttk.Frame(midFrame, borderwidth=2)
+rightFrame.grid(column=1, row=0, sticky='nesw')
+#Configuring column and row resizability
+rightFrame.columnconfigure((0,1,2,3), weight=1, minsize=80)
+#rightFrame.rowconfigure((0,1), weight=1)
+
+bottomFrame = ttk.Frame(mainFrame, borderwidth=2)
+bottomFrame.grid(column=0, row=2, sticky='nesw')
+#Configuring column and row resizability
+bottomFrame.columnconfigure(0, weight=1, minsize=80)
+bottomFrame.rowconfigure((1), weight=1)
 
 #LABELS
 #Main window labels
-logoLbl = tk.Label(topFrame, text = "Logo placeholder", background="blue", height=5)
+logoLbl = ttk.Label(topFrame, text = "Logo placeholder", background="blue")
 logoLbl.grid(column=0, row=0, sticky="w")
 #mainWindow.rowconfigure(1, weight=0, minsize=25) #Inserts an empty row btwn the 2 labels (NB: minsize is in pixels)
-titleLbl = tk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="white")
-titleLbl.grid(column=1, row=0, sticky="nsew")
-searchLbl = tk.Label(leftFrame, text = "Search word definition", background="white", height=2)
+titleLbl = ttk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="white")
+titleLbl.grid(column=1, row=0, padx=5, sticky="nsew")
+searchLbl = ttk.Label(leftFrame, text = "Search word definition", background="white")
 searchLbl.grid(column=0, row=0, sticky="nsew", pady=2)
-contributeLbl = tk.Label(rightFrame, text = "Contribute to the dictionary", background="white", height=2)
-contributeLbl.grid(column=0, row=0, sticky="nsew", pady=2)
-inputLangLbl = tk.Label(leftFrame, text = "Choose input language", background="white", height=2)
+contributeLbl = ttk.Label(rightFrame, text = "Contribute to the dictionary", background="white")
+contributeLbl.grid(column=0, columnspan=3, row=0, sticky="nsew", pady=2)
+inputLangLbl = ttk.Label(leftFrame, text = "Choose input language", background="white")
 inputLangLbl.grid(column=0, row=1, sticky="nsew", pady=2)
-wordLbl = tk.Label(leftFrame, text = "Word/Oshitya", background="white")
-wordLbl.grid(column=0, row=3, sticky="nsew")
-definitionLbl = tk.Label(bottomFrame, text = "The definition wil appear here", background="white", width=100)
-definitionLbl.grid(column=0, row=0, sticky="nsew")
+wordLbl = ttk.Label(bottomFrame, text = "Word/Oshitya", background="white")
+wordLbl.grid(column=0, row=0, sticky="w")
+definitionLbl = ttk.Label(bottomFrame, text = "The definition wil appear here", background="white", relief='sunken')
+definitionLbl.grid(column=0, row=1, sticky="nsew")
 
 #BUTTONS
 #Main window buttons
-#deleteDefBtn = tk.Button(rightFrame, text = "Delete definition from database")
-#deleteDefBtn.grid(column=9, row=2)
-searchBtn = tk.Button(leftFrame, text = "Search")
+deleteDefBtn = ttk.Button(rightFrame, text = "Delete definition from database")
+deleteDefBtn.grid(column=3, row=0, sticky="nsew")
+searchBtn = ttk.Button(leftFrame, text = "Search")
 searchBtn.grid(column=1, row=2)
-addEngBtn = tk.Button(rightFrame, text = "Add/update English word", height=5)
+addEngBtn = ttk.Button(rightFrame, text = "Add/update English word")
 addEngBtn.grid(column=0, row=1, sticky="nsew")
-addOshBtn = tk.Button(rightFrame, text = "Add/Update Oshindonga word")
+addOshBtn = ttk.Button(rightFrame, text = "Add/Update Oshindonga word")
 addOshBtn.grid(column=1, row=1, sticky="nsew")
-addDefBtn = tk.Button(rightFrame, text = "Add/Update definition")
+addDefBtn = ttk.Button(rightFrame, text = "Add/Update definition")
 addDefBtn.grid(column=2, row=1, sticky="nsew")
-deleteWordBtn = tk.Button(rightFrame, text = "Delete word from database")
-deleteWordBtn.grid(column=3, row=1)
+deleteWordBtn = ttk.Button(rightFrame, text = "Delete word from database")
+deleteWordBtn.grid(column=3, row=1, sticky="nsew")
 
 #RADIOBUTTONS
 #Main window radiobuttons
-englishRbtn = tk.Radiobutton(leftFrame, text="English", variable=inputLang, value="English")
+englishRbtn = ttk.Radiobutton(leftFrame, text="English", variable=inputLang, value="English")
 englishRbtn.grid(column=1, row=1, sticky="nsew")
-oshindongaRbtn = tk.Radiobutton(leftFrame, text="Oshindonga", variable=inputLang, value="Oshindonga")
+oshindongaRbtn = ttk.Radiobutton(leftFrame, text="Oshindonga", variable=inputLang, value="Oshindonga")
 oshindongaRbtn.grid(column=2, row=1, sticky="nsew")
 
 #ENTRY WIDGETS
 #Main window entry widgets
-searchEbx = tk.Entry(leftFrame)
+searchEbx = ttk.Entry(leftFrame)
 searchEbx.grid(column=0, row=2, sticky="nsew", pady=2)
 
 #TEXT WIDGETS
 #OPTION MENUES
 #Main window option menues
+#SIZEGRIPs
+ttk.Sizegrip(mainWindow).grid(column=999, row=999, sticky='se')
 
 
 

@@ -1,0 +1,9 @@
+, width=130, height=24
+
+logolbl: , width=18, height=5
+searchlbl: , height=2
+contriblbl: , height=2
+inputlanglbl: , height=2
+
+all contrib buttons" , width=10, height=5 || wraplength=80
+all 
