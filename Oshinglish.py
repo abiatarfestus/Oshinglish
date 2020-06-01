@@ -1,23 +1,38 @@
 import tkinter as tk
 from tkinter import ttk
+#import ttkthemes
+from ttkthemes import ThemedTk
 import sqlite3
 
-mainWindow = tk.Tk()
+mainWindow =  ThemedTk(theme="arc") #tk.Tk()
 mainWindow.title("Oshinglish Dictionary First Edition")
 #mainWindow.configure(background = "#0970d2")
 #mainWindow.geometry("900x600+300+0")
-#variable = StringVar(mainWindow)
-#variable.set("one") # default value
+engWindow = tk.Toplevel(mainWindow)
+engWindow.title("Add/Update English word")
+engWindow.resizable(tk.FALSE,tk.FALSE)
+
+#THEMES & STYLE
+#theme = ttk.Style()
+#print(theme.theme_names()) #Prints theme names
+#print(theme.theme_use()) #Prints theme in use
+#theme.theme_use('winnative') #Changes theme in use
 
 #Configuring column and row resizability
 mainWindow.columnconfigure(0, weight=1)
 mainWindow.rowconfigure(0, weight=1)
 
 #VARIABLES
-#Main window variables??
+#Main window variables
 inputLang = tk.StringVar() #variable for input language radiobuttons
 #inputLang.set("English")
+logo = tk.PhotoImage(file='Logo.gif')
+
+#New English window variables
+newEng = tk.StringVar()
+
 #FRAMES
+#Main window frames
 mainFrame = ttk.Frame(mainWindow, relief='raised', borderwidth=3)
 mainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
 #Configuring column and row resizability
@@ -40,8 +55,8 @@ midFrame.rowconfigure(0, weight=1)
 leftFrame = ttk.Frame(midFrame, borderwidth=2)
 leftFrame.grid(column=0, row=0, sticky='nesw')
 #Configuring column and row resizability
-leftFrame.columnconfigure((0), weight=1)
-#leftFrame.rowconfigure((0,1,2), weight=1)
+leftFrame.columnconfigure(0, weight=1, minsize=80)
+leftFrame.rowconfigure((0,1,2), weight=1)
 
 rightFrame = ttk.Frame(midFrame, borderwidth=2)
 rightFrame.grid(column=1, row=0, sticky='nesw')
@@ -52,12 +67,16 @@ rightFrame.columnconfigure((0,1,2,3), weight=1, minsize=80)
 bottomFrame = ttk.Frame(mainFrame, borderwidth=2)
 bottomFrame.grid(column=0, row=2, sticky='nesw')
 #Configuring column and row resizability
-bottomFrame.columnconfigure(0, weight=1, minsize=80)
+bottomFrame.columnconfigure(0, weight=1)
 bottomFrame.rowconfigure((1), weight=1)
+
+#Engish word frames
+engMainFrame = ttk.Frame(engWindow, borderwidth=3)
+engMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
 
 #LABELS
 #Main window labels
-logoLbl = ttk.Label(topFrame, text = "Logo placeholder", background="blue")
+logoLbl = ttk.Label(topFrame, image = logo)
 logoLbl.grid(column=0, row=0, sticky="w")
 #mainWindow.rowconfigure(1, weight=0, minsize=25) #Inserts an empty row btwn the 2 labels (NB: minsize is in pixels)
 titleLbl = ttk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="white")
@@ -72,6 +91,18 @@ wordLbl = ttk.Label(bottomFrame, text = "Word/Oshitya", background="white")
 wordLbl.grid(column=0, row=0, sticky="w")
 definitionLbl = ttk.Label(bottomFrame, text = "The definition wil appear here", background="white", relief='sunken')
 definitionLbl.grid(column=0, row=1, sticky="nsew")
+
+#English window labels
+newEngTitleLbl = ttk.Label(engMainFrame, text = "Add or update an English word", anchor=tk.CENTER, background="white")
+newEngTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
+newEngLbl = ttk.Label(engMainFrame, text = "Enter new word:", background="white")
+newEngLbl.grid(column=0, row=1, padx=5, pady=5, sticky="nsew")
+newUpdateEngLbl = ttk.Label(engMainFrame, text = "Select New/Update:", background="white")
+newUpdateEngLbl.grid(column=0, row=2, padx=5, pady=5, sticky="nsew")
+newEngIdLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
+newEngIdLbl.grid(column=0, row=3, padx=5, pady=5, sticky="nsew")
+newEngDisplayLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
+newEngDisplayLbl.grid(column=0, columnspan=3, row=4, padx=5, pady=5, sticky="nsew")
 
 #BUTTONS
 #Main window buttons
@@ -88,6 +119,12 @@ addDefBtn.grid(column=2, row=1, sticky="nsew")
 deleteWordBtn = ttk.Button(rightFrame, text = "Delete word from database")
 deleteWordBtn.grid(column=3, row=1, sticky="nsew")
 
+#English window buttons
+newEngSaveBtn = ttk.Button(engMainFrame, text = "Save")
+newEngSaveBtn.grid(column=0, row=5, padx=5, sticky="nsew")
+newEngCancelBtn = ttk.Button(engMainFrame, text = "Cancel")
+newEngCancelBtn.grid(column=1, row=5, padx=5, sticky="nsew")
+
 #RADIOBUTTONS
 #Main window radiobuttons
 englishRbtn = ttk.Radiobutton(leftFrame, text="English", variable=inputLang, value="English")
@@ -95,10 +132,22 @@ englishRbtn.grid(column=1, row=1, sticky="nsew")
 oshindongaRbtn = ttk.Radiobutton(leftFrame, text="Oshindonga", variable=inputLang, value="Oshindonga")
 oshindongaRbtn.grid(column=2, row=1, sticky="nsew")
 
+#English window radiobuttons
+newEngRbtn = ttk.Radiobutton(engMainFrame, text="New", variable=newEng, value="New")
+newEngRbtn.grid(column=1, row=2, sticky="nsew")
+updateEngRbtn = ttk.Radiobutton(engMainFrame, text="Update", variable=newEng, value="Update")
+updateEngRbtn.grid(column=2, row=2, sticky="nsew")
+
 #ENTRY WIDGETS
 #Main window entry widgets
 searchEbx = ttk.Entry(leftFrame)
 searchEbx.grid(column=0, row=2, sticky="nsew", pady=2)
+
+#English window entry widgets
+newEngEbx = ttk.Entry(engMainFrame)
+newEngEbx.grid(column=1, row=1, sticky="nsew", pady=2)
+updateEngEbx = ttk.Entry(engMainFrame)
+updateEngEbx.grid(column=1, row=3, sticky="nsew", pady=2)
 
 #TEXT WIDGETS
 #OPTION MENUES
@@ -106,7 +155,11 @@ searchEbx.grid(column=0, row=2, sticky="nsew", pady=2)
 #SIZEGRIPs
 ttk.Sizegrip(mainWindow).grid(column=999, row=999, sticky='se')
 
-
+#SCROLLBARS
+""" defScrb = ttk.Scrollbar(bottomFrame, orient=VERTICAL, command=definitionLbl.yview)
+defScrb.grid(bottomFrame, column=1, row=1)
+definitionLbl.configure(yscrollcommand=defScrb.set)
+ """ #Labels are not scrollable
 
 conn = sqlite3.connect('dictionary.db')
 
@@ -302,6 +355,9 @@ print(c.fetchall())'''
 #update_definition("verbs", 5, 5, "To take part in a game action", "They played a good game", 
                     #"Oku dhana uudhano nenge oshinyandwa", "Oya dhana uudhano uuwanawa", 1)
 
+
+
 conn.close()
+
 
 mainWindow.mainloop()
