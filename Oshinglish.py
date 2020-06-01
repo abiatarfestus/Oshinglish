@@ -4,13 +4,100 @@ from tkinter import ttk
 from ttkthemes import ThemedTk
 import sqlite3
 
+
+
+def open_engWindow():
+    engWindow = tk.Toplevel(mainWindow)
+    engWindow.title("Add/Update English word")
+    engWindow.resizable(tk.FALSE,tk.FALSE)
+
+    #VARIABLES
+    newEng = tk.StringVar()
+
+    #FRAMES
+    engMainFrame = ttk.Frame(engWindow, borderwidth=3)
+    engMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
+
+    #LABELS
+    newEngTitleLbl = ttk.Label(engMainFrame, text = "Add or update an English word", anchor=tk.CENTER, background="white")
+    newEngTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
+    newEngLbl = ttk.Label(engMainFrame, text = "Enter new word:", background="white")
+    newEngLbl.grid(column=0, row=1, padx=5, pady=5, sticky="nsew")
+    newUpdateEngLbl = ttk.Label(engMainFrame, text = "Select New/Update:", background="white")
+    newUpdateEngLbl.grid(column=0, row=2, padx=5, pady=5, sticky="nsew")
+    newEngIdLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
+    newEngIdLbl.grid(column=0, row=3, padx=5, pady=5, sticky="nsew")
+    newEngDisplayLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
+    newEngDisplayLbl.grid(column=0, columnspan=3, row=4, padx=5, pady=5, sticky="nsew")
+    #BUTTONS
+    newEngSaveBtn = ttk.Button(engMainFrame, text = "Save")
+    newEngSaveBtn.grid(column=0, row=5, padx=5, sticky="nsew")
+    newEngCancelBtn = ttk.Button(engMainFrame, text = "Cancel")
+    newEngCancelBtn.grid(column=1, row=5, padx=5, sticky="nsew")
+    #RADIOBUTTONS
+    newEngRbtn = ttk.Radiobutton(engMainFrame, text="New", variable=newEng, value="New")
+    newEngRbtn.grid(column=1, row=2, sticky="nsew")
+    updateEngRbtn = ttk.Radiobutton(engMainFrame, text="Update", variable=newEng, value="Update")
+    updateEngRbtn.grid(column=2, row=2, sticky="nsew")
+
+    #TEXT ENTRY
+    #ENTRY BOXES
+    newEngEbx = ttk.Entry(engMainFrame)
+    newEngEbx.grid(column=1, row=1, sticky="nsew", pady=2)
+    updateEngEbx = ttk.Entry(engMainFrame)
+    updateEngEbx.grid(column=1, row=3, sticky="nsew", pady=2)
+
+def open_oshWindow():
+    oshWindow = tk.Toplevel(mainWindow)
+    oshWindow.title("Add/Update Oshindonga word")
+    oshWindow.resizable(tk.FALSE,tk.FALSE)
+
+    #VARIABLES
+    newOsh = tk.StringVar()
+
+    #FRAMES
+    oshMainFrame = ttk.Frame(oshWindow, borderwidth=3)
+    oshMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
+
+    #LABELS
+    newOshTitleLbl = ttk.Label(oshMainFrame, text = "Add or update an Oshindonga word", anchor=tk.CENTER, background="white")
+    newOshTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
+    engWordIdLbl = ttk.Label(oshMainFrame, text = "Enter the English word ID:", background="white")
+    engWordIdLbl.grid(column=0, row=1, padx=5, pady=5, sticky="nsew")
+    engWordDisplayLbl = ttk.Label(oshMainFrame, text = "Display the English word (Default: Invalid English word ID", anchor=tk.CENTER, background="white")
+    engWordDisplayLbl.grid(column=0, columnspan=3, row=2, padx=5, pady=5, sticky="nsew")
+    newOshWordLbl = ttk.Label(oshMainFrame, text = "Enter new Oshindonga word:", background="white")
+    newOshWordLbl.grid(column=0, row=3, padx=5, pady=5, sticky="nsew")
+    newUpdateOshLbl = ttk.Label(oshMainFrame, text = "Select New/Update:", background="white")
+    newUpdateOshLbl.grid(column=0, row=4, padx=5, pady=5, sticky="nsew")
+    oshWordIdLbl = ttk.Label(oshMainFrame, text = "ID of word to be updated:", background="white")
+    oshWordIdLbl.grid(column=0, row=5, padx=5, pady=5, sticky="nsew")
+    oshWordDisplayLbl = ttk.Label(oshMainFrame, text = "Display Oshindonga word to be updated (Default: Invalid word ID)", anchor=tk.CENTER, background="white")
+    oshWordDisplayLbl.grid(column=0, columnspan=3, row=6, padx=5, pady=5, sticky="nsew")
+    #BUTTONS
+    newOshSaveBtn = ttk.Button(oshMainFrame, text = "Save")
+    newOshSaveBtn.grid(column=0, row=7, padx=5, sticky="nsew")
+    newOshCancelBtn = ttk.Button(oshMainFrame, text = "Cancel")
+    newOshCancelBtn.grid(column=1, row=7, padx=5, sticky="nsew")
+    #RADIOBUTTONS
+    newOshRbtn = ttk.Radiobutton(oshMainFrame, text="New", variable=newOsh, value="New")
+    newOshRbtn.grid(column=1, row=4, sticky="nsew")
+    updateOshRbtn = ttk.Radiobutton(oshMainFrame, text="Update", variable=newOsh, value="Update")
+    updateOshRbtn.grid(column=2, row=4, sticky="nsew")
+
+    #TEXT ENTRY
+    #ENTRY BOXES
+    engWordIdEbx = ttk.Entry(oshMainFrame)
+    engWordIdEbx.grid(column=1, row=1, sticky="nsew", pady=2)
+    newOshEbx = ttk.Entry(oshMainFrame)
+    newOshEbx.grid(column=1, row=3, sticky="nsew", pady=2)
+    oshWordIdEbx = ttk.Entry(oshMainFrame)
+    oshWordIdEbx.grid(column=1, row=5, sticky="nsew", pady=2)
+
 mainWindow =  ThemedTk(theme="arc") #tk.Tk()
 mainWindow.title("Oshinglish Dictionary First Edition")
 #mainWindow.configure(background = "#0970d2")
 #mainWindow.geometry("900x600+300+0")
-engWindow = tk.Toplevel(mainWindow)
-engWindow.title("Add/Update English word")
-engWindow.resizable(tk.FALSE,tk.FALSE)
 
 #THEMES & STYLE
 #theme = ttk.Style()
@@ -23,16 +110,11 @@ mainWindow.columnconfigure(0, weight=1)
 mainWindow.rowconfigure(0, weight=1)
 
 #VARIABLES
-#Main window variables
 inputLang = tk.StringVar() #variable for input language radiobuttons
 #inputLang.set("English")
 logo = tk.PhotoImage(file='Logo.gif')
 
-#New English window variables
-newEng = tk.StringVar()
-
 #FRAMES
-#Main window frames
 mainFrame = ttk.Frame(mainWindow, relief='raised', borderwidth=3)
 mainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
 #Configuring column and row resizability
@@ -70,12 +152,7 @@ bottomFrame.grid(column=0, row=2, sticky='nesw')
 bottomFrame.columnconfigure(0, weight=1)
 bottomFrame.rowconfigure((1), weight=1)
 
-#Engish word frames
-engMainFrame = ttk.Frame(engWindow, borderwidth=3)
-engMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
-
 #LABELS
-#Main window labels
 logoLbl = ttk.Label(topFrame, image = logo)
 logoLbl.grid(column=0, row=0, sticky="w")
 #mainWindow.rowconfigure(1, weight=0, minsize=25) #Inserts an empty row btwn the 2 labels (NB: minsize is in pixels)
@@ -92,66 +169,32 @@ wordLbl.grid(column=0, row=0, sticky="w")
 definitionLbl = ttk.Label(bottomFrame, text = "The definition wil appear here", background="white", relief='sunken')
 definitionLbl.grid(column=0, row=1, sticky="nsew")
 
-#English window labels
-newEngTitleLbl = ttk.Label(engMainFrame, text = "Add or update an English word", anchor=tk.CENTER, background="white")
-newEngTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
-newEngLbl = ttk.Label(engMainFrame, text = "Enter new word:", background="white")
-newEngLbl.grid(column=0, row=1, padx=5, pady=5, sticky="nsew")
-newUpdateEngLbl = ttk.Label(engMainFrame, text = "Select New/Update:", background="white")
-newUpdateEngLbl.grid(column=0, row=2, padx=5, pady=5, sticky="nsew")
-newEngIdLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
-newEngIdLbl.grid(column=0, row=3, padx=5, pady=5, sticky="nsew")
-newEngDisplayLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
-newEngDisplayLbl.grid(column=0, columnspan=3, row=4, padx=5, pady=5, sticky="nsew")
-
 #BUTTONS
-#Main window buttons
 deleteDefBtn = ttk.Button(rightFrame, text = "Delete definition from database")
 deleteDefBtn.grid(column=3, row=0, sticky="nsew")
 searchBtn = ttk.Button(leftFrame, text = "Search")
 searchBtn.grid(column=1, row=2)
-addEngBtn = ttk.Button(rightFrame, text = "Add/update English word")
+addEngBtn = ttk.Button(rightFrame, text = "Add/update English word", command=open_engWindow)
 addEngBtn.grid(column=0, row=1, sticky="nsew")
-addOshBtn = ttk.Button(rightFrame, text = "Add/Update Oshindonga word")
+addOshBtn = ttk.Button(rightFrame, text = "Add/Update Oshindonga word", command=open_oshWindow)
 addOshBtn.grid(column=1, row=1, sticky="nsew")
 addDefBtn = ttk.Button(rightFrame, text = "Add/Update definition")
 addDefBtn.grid(column=2, row=1, sticky="nsew")
 deleteWordBtn = ttk.Button(rightFrame, text = "Delete word from database")
 deleteWordBtn.grid(column=3, row=1, sticky="nsew")
 
-#English window buttons
-newEngSaveBtn = ttk.Button(engMainFrame, text = "Save")
-newEngSaveBtn.grid(column=0, row=5, padx=5, sticky="nsew")
-newEngCancelBtn = ttk.Button(engMainFrame, text = "Cancel")
-newEngCancelBtn.grid(column=1, row=5, padx=5, sticky="nsew")
-
 #RADIOBUTTONS
-#Main window radiobuttons
 englishRbtn = ttk.Radiobutton(leftFrame, text="English", variable=inputLang, value="English")
 englishRbtn.grid(column=1, row=1, sticky="nsew")
 oshindongaRbtn = ttk.Radiobutton(leftFrame, text="Oshindonga", variable=inputLang, value="Oshindonga")
 oshindongaRbtn.grid(column=2, row=1, sticky="nsew")
 
-#English window radiobuttons
-newEngRbtn = ttk.Radiobutton(engMainFrame, text="New", variable=newEng, value="New")
-newEngRbtn.grid(column=1, row=2, sticky="nsew")
-updateEngRbtn = ttk.Radiobutton(engMainFrame, text="Update", variable=newEng, value="Update")
-updateEngRbtn.grid(column=2, row=2, sticky="nsew")
-
 #ENTRY WIDGETS
-#Main window entry widgets
 searchEbx = ttk.Entry(leftFrame)
 searchEbx.grid(column=0, row=2, sticky="nsew", pady=2)
 
-#English window entry widgets
-newEngEbx = ttk.Entry(engMainFrame)
-newEngEbx.grid(column=1, row=1, sticky="nsew", pady=2)
-updateEngEbx = ttk.Entry(engMainFrame)
-updateEngEbx.grid(column=1, row=3, sticky="nsew", pady=2)
-
 #TEXT WIDGETS
 #OPTION MENUES
-#Main window option menues
 #SIZEGRIPs
 ttk.Sizegrip(mainWindow).grid(column=999, row=999, sticky='se')
 
@@ -160,6 +203,8 @@ ttk.Sizegrip(mainWindow).grid(column=999, row=999, sticky='se')
 defScrb.grid(bottomFrame, column=1, row=1)
 definitionLbl.configure(yscrollcommand=defScrb.set)
  """ #Labels are not scrollable
+
+
 
 conn = sqlite3.connect('dictionary.db')
 
