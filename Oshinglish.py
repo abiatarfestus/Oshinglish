@@ -94,6 +94,143 @@ def open_oshWindow():
     oshWordIdEbx = ttk.Entry(oshMainFrame)
     oshWordIdEbx.grid(column=1, row=5, sticky="nsew", pady=2)
 
+def open_defWindow():
+    defWindow = tk.Toplevel(mainWindow)
+    defWindow.title("Add/Update a definition")
+    #Configuring column and row resizability
+    defWindow.columnconfigure(0, weight=1)
+    defWindow.rowconfigure(0, weight=1)
+
+    #VARIABLES
+    #Variables for English and Oshindonga wod IDs
+    engIdDef = tk.StringVar()
+    engIdDef.set(str(1))
+    oshIdDef = tk.StringVar()
+    oshIdDef.set(str(2))
+    #Variables for the radiobuttons
+    newDef = tk.StringVar()
+    newDef.set("New")
+    updateDef = tk.StringVar()
+    #Variables for the radiobuttons
+    nounDef = tk.StringVar()
+    verbDef = tk.StringVar()
+    adverbDef = tk.StringVar()
+    adjectiveDef = tk.StringVar()
+
+    #FRAMES
+    defMainFrame = ttk.Frame(defWindow, relief='raised', borderwidth=3)
+    defMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
+    #Configuring column and row resizability
+    defMainFrame.columnconfigure(0, weight=1)
+    defMainFrame.rowconfigure((0,1,2), weight=1)
+
+    defTopFrame = ttk.Frame(defMainFrame, borderwidth=2)
+    defTopFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
+    #Configuring column and row resizability
+    defTopFrame.columnconfigure((0,1,2), weight=1)
+    defTopFrame.rowconfigure((0,1,2,3), weight=1)
+
+    defMidFrame = ttk.Frame(defMainFrame, borderwidth=2)
+    defMidFrame.grid(column=0, row=1, padx=5, pady=5, sticky='nesw')
+    #Configuring column and row resizability
+    defMidFrame.columnconfigure((0,1,2), weight=1)
+    defMidFrame.rowconfigure((0,1,2,3), weight=1)
+
+    newUpdateFrame = ttk.Frame(defTopFrame, borderwidth=2)
+    newUpdateFrame.grid(column=1, row=1, padx=5, pady=5, sticky='nesw')
+    #Configuring column and row resizability
+    newUpdateFrame.columnconfigure((0,1), weight=1)
+    newUpdateFrame.rowconfigure(0, weight=1)
+
+    partsOfSpeechFrame = ttk.Frame(defTopFrame, borderwidth=2)
+    partsOfSpeechFrame.grid(column=1, row=2, padx=5, pady=5, sticky='nesw')
+    #Configuring column and row resizability
+    partsOfSpeechFrame.columnconfigure((0,1,2,3), weight=1)
+    partsOfSpeechFrame.rowconfigure(0, weight=1)
+
+    searchOshFrame = ttk.Frame(defTopFrame, borderwidth=2)
+    searchOshFrame.grid(column=1, row=3, padx=5, pady=5, sticky='nesw')
+    #Configuring column and row resizability
+    searchOshFrame.columnconfigure((0,1), weight=1)
+    searchOshFrame.rowconfigure(0, weight=1)
+
+    defBottomFrame = ttk.Frame(defMainFrame, borderwidth=2)
+    defBottomFrame.grid(column=0, row=3, padx=5, pady=5, sticky='nesw')
+    #Configuring column and row resizability
+    defBottomFrame.columnconfigure((0,1), weight=1)
+    defBottomFrame.rowconfigure(0, weight=1)
+
+    #LABELS
+    #In top frame
+    defTitleLbl = ttk.Label(defTopFrame, text = "Add or update a definition", anchor=tk.CENTER, background="white")
+    defTitleLbl.grid(column=0, columnspan=5, row=0, padx=5, sticky="nsew")
+    newUpdateDefLbl = ttk.Label(defTopFrame, text = "Choose New/Update:", background="white")
+    newUpdateDefLbl.grid(column=0, row=1, padx=5, pady=3, sticky="nsew")
+    partOfSpeechLbl = ttk.Label(defTopFrame, text = "Choose part of speech:", background="white")
+    partOfSpeechLbl.grid(column=0, row=2, padx=5, pady=3, sticky="nsew")
+    oshWordDefLbl = ttk.Label(defTopFrame, text = "Enter Oshindonga word:", background="white")
+    oshWordDefLbl.grid(column=0, row=3, padx=5, pady=3, sticky="nsew")
+    wordInDatabaseLbl = ttk.Label(defTopFrame, text = "Word found in database. continue below:", anchor=tk.CENTER, background="white")
+    wordInDatabaseLbl.grid(column=0, columnspan=5, row=4, padx=5, sticky="nsew")
+    #In middle frame
+    engIdDefLbl = ttk.Label(defMidFrame, text = "English word ID", background="cyan")
+    engIdDefLbl.grid(column=0, row=0, padx=5, sticky="nsew")
+    engDefLbl = ttk.Label(defMidFrame, text = "English definition", background="cyan")
+    engDefLbl.grid(column=1, row=0, padx=5, sticky="nsew")
+    engExampleLbl = ttk.Label(defMidFrame, text = "English example", background="cyan")
+    engExampleLbl.grid(column=2, row=0, padx=5, sticky="nsew")
+    displayEngIdLbl = tk.Label(defMidFrame, textvariable = engIdDef, background="white")    #Using the tk label because ttk label won't work with the stringvar
+    displayEngIdLbl.grid(column=0, row=1, padx=5, sticky="nsew")
+    
+
+    oshIdDefLbl = ttk.Label(defMidFrame, text = "Oshindonga word ID", background="cyan")
+    oshIdDefLbl.grid(column=0, row=2, padx=5, sticky="nsew")
+    oshDefLbl = ttk.Label(defMidFrame, text = "Oshindonga definition", background="cyan")
+    oshDefLbl.grid(column=1, row=2, padx=5, sticky="nsew")
+    oshExampleLbl = ttk.Label(defMidFrame, text = "Oshindonga example", background="cyan")
+    oshExampleLbl.grid(column=2, row=2, padx=5, sticky="nsew")
+    displayOshIdLbl = tk.Label(defMidFrame, textvariable = oshIdDef, background="white")    #Using the tk label because ttk label won't work with the stringvar
+    displayOshIdLbl.grid(column=0, row=3, padx=5, sticky="nsew")
+
+    #BUTTONS
+    searchDefBtn = ttk.Button(searchOshFrame, text = "Search in database")
+    searchDefBtn.grid(column=1, row=0, padx=5, sticky="nsew")
+
+    saveDefBtn = ttk.Button(defBottomFrame, text = "Save")
+    saveDefBtn.grid(column=0, row=0, padx=5, sticky="nsew")
+    cancelDefBtn = ttk.Button(defBottomFrame, text = "Cancel")
+    cancelDefBtn.grid(column=1, row=0, padx=5, sticky="nsew")
+
+    #RADIOBUTTONS
+    newDefRbtn = ttk.Radiobutton(newUpdateFrame, text="New", variable=newDef, value="New")
+    newDefRbtn.grid(column=0, row=0, sticky="nsew")
+    updateRbtn = ttk.Radiobutton(newUpdateFrame, text="Update", variable=updateDef, value="Update")
+    updateRbtn.grid(column=1, row=0, sticky="nsew")
+    nounRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Noun", variable=nounDef, value="Noun")
+    nounRbtn.grid(column=0, row=0, sticky="nsew")
+    verbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Verb", variable=verbDef, value="Verb")
+    verbRbtn.grid(column=1, row=0, sticky="nsew")
+    adverbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adverb", variable=adverbDef, value="Adverb")
+    adverbRbtn.grid(column=2, row=0, sticky="nsew")
+    adjectiveRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adjective", variable=adjectiveDef, value="Adjective")
+    adjectiveRbtn.grid(column=3, row=0, sticky="nsew")
+    #TEXT ENTRY
+    engDefTxt = tk.Text(defMidFrame, height=2, width=40)
+    engDefTxt.grid(column=1, row=1, sticky="nsew", pady=2)
+    engExampleTxt = tk.Text(defMidFrame, height=2, width=40)
+    engExampleTxt.grid(column=2, row=1, sticky="nsew", pady=2)
+    oshDefTxt = tk.Text(defMidFrame, height=2, width=40)
+    oshDefTxt.grid(column=1, row=3, sticky="nsew", pady=2)
+    oshExampleTxt = tk.Text(defMidFrame, height=2, width=40)
+    oshExampleTxt.grid(column=2, row=3, sticky="nsew", pady=2)
+
+    #ENTRY BOXES
+    oshWordDefEbx = ttk.Entry(searchOshFrame)
+    oshWordDefEbx.grid(column=0, row=0, sticky="nsew", pady=2)
+
+    #SIZEGRIPs
+    ttk.Sizegrip(defWindow).grid(column=999, row=999, sticky='se')
+
 mainWindow =  ThemedTk(theme="arc") #tk.Tk()
 mainWindow.title("Oshinglish Dictionary First Edition")
 #mainWindow.configure(background = "#0970d2")
@@ -178,7 +315,7 @@ addEngBtn = ttk.Button(rightFrame, text = "Add/update English word", command=ope
 addEngBtn.grid(column=0, row=1, sticky="nsew")
 addOshBtn = ttk.Button(rightFrame, text = "Add/Update Oshindonga word", command=open_oshWindow)
 addOshBtn.grid(column=1, row=1, sticky="nsew")
-addDefBtn = ttk.Button(rightFrame, text = "Add/Update definition")
+addDefBtn = ttk.Button(rightFrame, text = "Add/Update definition", command=open_defWindow)
 addDefBtn.grid(column=2, row=1, sticky="nsew")
 deleteWordBtn = ttk.Button(rightFrame, text = "Delete word from database")
 deleteWordBtn.grid(column=3, row=1, sticky="nsew")
