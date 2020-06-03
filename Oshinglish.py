@@ -234,7 +234,7 @@ def open_definition_window():
 
 def open_delete_word_window():
     delWordWindow = tk.Toplevel(mainWindow)
-    delWordWindow.title("Delete a word from")
+    delWordWindow.title("Delete a word")
     delWordWindow.resizable(tk.FALSE,tk.FALSE)
 
     #VARIABLES
@@ -275,117 +275,161 @@ def open_delete_word_window():
     wordIdDelEbx = ttk.Entry(delWordMainFrame)
     wordIdDelEbx.grid(column=1, row=2, sticky="nsew", pady=2)
 
-mainWindow =  ThemedTk(theme="arc") #tk.Tk()
-mainWindow.title("Oshinglish Dictionary First Edition")
-#mainWindow.configure(background = "#0970d2")
-#mainWindow.geometry("900x600+300+0")
+def open_delete_definition_window():
+    delDefWindow = tk.Toplevel(mainWindow)
+    delDefWindow.title("Delete a definition")
+    delDefWindow.resizable(tk.FALSE,tk.FALSE)
 
-#THEMES & STYLE
-#theme = ttk.Style()
-#print(theme.theme_names()) #Prints theme names
-#print(theme.theme_use()) #Prints theme in use
-#theme.theme_use('winnative') #Changes theme in use
+    #VARIABLES
+    #Variables for the radiobuttons
+    nounDefDel = tk.StringVar()
+    verbDefDel = tk.StringVar()
+    
 
-#Configuring column and row resizability
-mainWindow.columnconfigure(0, weight=1)
-mainWindow.rowconfigure(0, weight=1)
+    #FRAMES
+    delDefMainFrame = ttk.Frame(delDefWindow, relief='raised', borderwidth=3)
+    delDefMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
 
-#VARIABLES
-inputLang = tk.StringVar() #variable for input language radiobuttons
-#inputLang.set("English")
-logo = tk.PhotoImage(file='Logo.gif')
+    #LABELS
+    delDefTitleLbl = ttk.Label(delDefMainFrame, text = "Delete a definition from the database", anchor=tk.CENTER, background="white")
+    delDefTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
+    speechDefDelLbl = ttk.Label(delDefMainFrame, text = "Choose the part of speech:", background="white")
+    speechDefDelLbl.grid(column=0, row=2, padx=5, pady=3, sticky="nsew")
+    defDisplayDelLbl = ttk.Label(delDefMainFrame, text = "Definition to be deleted:", background="white")
+    defDisplayDelLbl.grid(column=0, columnspan=3, row=3, padx=5, pady=3, sticky="nsew")
 
-#FRAMES
-mainFrame = ttk.Frame(mainWindow, relief='raised', borderwidth=3)
-mainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
-#Configuring column and row resizability
-mainFrame.columnconfigure(0, weight=1)
-mainFrame.rowconfigure((0,1), weight=1)
-mainFrame.rowconfigure(2, weight=100)
+    #BUTTONS
+    searchDefIdDelBtn = ttk.Button(delDefMainFrame, text = "Search database")
+    searchDefIdDelBtn.grid(column=2, row=2, padx=5, sticky="nsew")
+    delDefBtn = ttk.Button(delDefMainFrame, text = "Delete")
+    delDefBtn.grid(column=1, row=4, padx=5, sticky="nsew")
+    cancelDefDelBtn = ttk.Button(delDefMainFrame, text = "Cancel")
+    cancelDefDelBtn.grid(column=2, row=4, padx=5, sticky="nsew")
+    
+    #RADIOBUTTONS
+    nounDelRbtn = ttk.Radiobutton(delDefMainFrame, text="Noun", variable=nounDefDel, value="Noun")
+    nounDelRbtn.grid(column=1, row=1, sticky="nsew")
+    verbDelRbtn = ttk.Radiobutton(delDefMainFrame, text="Verb", variable=verbDefDel, value="Verb")
+    verbDelRbtn.grid(column=2, row=1, sticky="nsew")
 
-topFrame = ttk.Frame(mainFrame, borderwidth=2)
-topFrame.grid(column=0, row=0, sticky='nesw')
-#Configuring column and row resizability
-topFrame.columnconfigure(1, weight=1)
-#topFrame.rowconfigure(0, weight=1)
+    #ENTRY BOXES
+    defIdDelEbx = ttk.Entry(delDefMainFrame)
+    defIdDelEbx.grid(column=1, row=2, sticky="nsew", pady=2)
 
-midFrame = ttk.Frame(mainFrame, borderwidth=2)
-midFrame.grid(column=0, row=1, sticky='nesw')
-#Configuring column and row resizability
-midFrame.columnconfigure((0,1), weight=1)
-midFrame.rowconfigure(0, weight=1)
+def open_main_window():
+    global mainWindow   #Makes it accessible to all other functions
+    mainWindow =  ThemedTk(theme="arc") #tk.Tk()
+    mainWindow.title("Oshinglish Dictionary First Edition")
+    #mainWindow.configure(background = "#0970d2")
+    #mainWindow.geometry("900x600+300+0")
 
-leftFrame = ttk.Frame(midFrame, borderwidth=2)
-leftFrame.grid(column=0, row=0, sticky='nesw')
-#Configuring column and row resizability
-leftFrame.columnconfigure(0, weight=1, minsize=80)
-leftFrame.rowconfigure((0,1,2), weight=1)
+    #THEMES & STYLE
+    #theme = ttk.Style()
+    #print(theme.theme_names()) #Prints theme names
+    #print(theme.theme_use()) #Prints theme in use
+    #theme.theme_use('winnative') #Changes theme in use
 
-rightFrame = ttk.Frame(midFrame, borderwidth=2)
-rightFrame.grid(column=1, row=0, sticky='nesw')
-#Configuring column and row resizability
-rightFrame.columnconfigure((0,1,2,3), weight=1, minsize=80)
-#rightFrame.rowconfigure((0,1), weight=1)
+    #Configuring column and row resizability
+    mainWindow.columnconfigure(0, weight=1)
+    mainWindow.rowconfigure(0, weight=1)
 
-bottomFrame = ttk.Frame(mainFrame, borderwidth=2)
-bottomFrame.grid(column=0, row=2, sticky='nesw')
-#Configuring column and row resizability
-bottomFrame.columnconfigure(0, weight=1)
-bottomFrame.rowconfigure((1), weight=1)
+    #VARIABLES
+    inputLang = tk.StringVar() #variable for input language radiobuttons
+    #inputLang.set("English")
+    logo = tk.PhotoImage(file='Logo.gif')
 
-#LABELS
-logoLbl = ttk.Label(topFrame, image = logo)
-logoLbl.grid(column=0, row=0, sticky="w")
-#mainWindow.rowconfigure(1, weight=0, minsize=25) #Inserts an empty row btwn the 2 labels (NB: minsize is in pixels)
-titleLbl = ttk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="white")
-titleLbl.grid(column=1, row=0, padx=5, sticky="nsew")
-searchLbl = ttk.Label(leftFrame, text = "Search word definition", background="white")
-searchLbl.grid(column=0, row=0, sticky="nsew", pady=2)
-contributeLbl = ttk.Label(rightFrame, text = "Contribute to the dictionary", background="white")
-contributeLbl.grid(column=0, columnspan=3, row=0, sticky="nsew", pady=2)
-inputLangLbl = ttk.Label(leftFrame, text = "Choose input language", background="white")
-inputLangLbl.grid(column=0, row=1, sticky="nsew", pady=2)
-wordLbl = ttk.Label(bottomFrame, text = "Word/Oshitya", background="white")
-wordLbl.grid(column=0, row=0, sticky="w")
-definitionLbl = ttk.Label(bottomFrame, text = "The definition wil appear here", background="white", relief='sunken')
-definitionLbl.grid(column=0, row=1, sticky="nsew")
+    #FRAMES
+    mainFrame = ttk.Frame(mainWindow, relief='raised', borderwidth=3)
+    mainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
+    #Configuring column and row resizability
+    mainFrame.columnconfigure(0, weight=1)
+    mainFrame.rowconfigure((0,1), weight=1)
+    mainFrame.rowconfigure(2, weight=100)
 
-#BUTTONS
-deleteDefBtn = ttk.Button(rightFrame, text = "Delete definition from database")
-deleteDefBtn.grid(column=3, row=0, sticky="nsew")
-searchBtn = ttk.Button(leftFrame, text = "Search")
-searchBtn.grid(column=1, row=2)
-addEngBtn = ttk.Button(rightFrame, text = "Add/update English word", command=open_english_window)
-addEngBtn.grid(column=0, row=1, sticky="nsew")
-addOshBtn = ttk.Button(rightFrame, text = "Add/Update Oshindonga word", command=open_oshindonga_window)
-addOshBtn.grid(column=1, row=1, sticky="nsew")
-addDefBtn = ttk.Button(rightFrame, text = "Add/Update definition", command=open_definition_window)
-addDefBtn.grid(column=2, row=1, sticky="nsew")
-deleteWordBtn = ttk.Button(rightFrame, text = "Delete word from database", command=open_delete_word_window)
-deleteWordBtn.grid(column=3, row=1, sticky="nsew")
+    topFrame = ttk.Frame(mainFrame, borderwidth=2)
+    topFrame.grid(column=0, row=0, sticky='nesw')
+    #Configuring column and row resizability
+    topFrame.columnconfigure(1, weight=1)
+    #topFrame.rowconfigure(0, weight=1)
 
-#RADIOBUTTONS
-englishRbtn = ttk.Radiobutton(leftFrame, text="English", variable=inputLang, value="English")
-englishRbtn.grid(column=1, row=1, sticky="nsew")
-oshindongaRbtn = ttk.Radiobutton(leftFrame, text="Oshindonga", variable=inputLang, value="Oshindonga")
-oshindongaRbtn.grid(column=2, row=1, sticky="nsew")
+    midFrame = ttk.Frame(mainFrame, borderwidth=2)
+    midFrame.grid(column=0, row=1, sticky='nesw')
+    #Configuring column and row resizability
+    midFrame.columnconfigure((0,1), weight=1)
+    midFrame.rowconfigure(0, weight=1)
 
-#ENTRY WIDGETS
-searchEbx = ttk.Entry(leftFrame)
-searchEbx.grid(column=0, row=2, sticky="nsew", pady=2)
+    leftFrame = ttk.Frame(midFrame, borderwidth=2)
+    leftFrame.grid(column=0, row=0, sticky='nesw')
+    #Configuring column and row resizability
+    leftFrame.columnconfigure(0, weight=1, minsize=80)
+    leftFrame.rowconfigure((0,1,2), weight=1)
 
-#TEXT WIDGETS
-#OPTION MENUES
-#SIZEGRIPs
-ttk.Sizegrip(mainWindow).grid(column=999, row=999, sticky='se')
+    rightFrame = ttk.Frame(midFrame, borderwidth=2)
+    rightFrame.grid(column=1, row=0, sticky='nesw')
+    #Configuring column and row resizability
+    rightFrame.columnconfigure((0,1,2,3), weight=1, minsize=80)
+    #rightFrame.rowconfigure((0,1), weight=1)
 
-#SCROLLBARS
-""" defScrb = ttk.Scrollbar(bottomFrame, orient=VERTICAL, command=definitionLbl.yview)
-defScrb.grid(bottomFrame, column=1, row=1)
-definitionLbl.configure(yscrollcommand=defScrb.set)
- """ #Labels are not scrollable
+    bottomFrame = ttk.Frame(mainFrame, borderwidth=2)
+    bottomFrame.grid(column=0, row=2, sticky='nesw')
+    #Configuring column and row resizability
+    bottomFrame.columnconfigure(0, weight=1)
+    bottomFrame.rowconfigure((1), weight=1)
+
+    #LABELS
+    logoLbl = ttk.Label(topFrame, image = logo)
+    logoLbl.grid(column=0, row=0, sticky="w")
+    #mainWindow.rowconfigure(1, weight=0, minsize=25) #Inserts an empty row btwn the 2 labels (NB: minsize is in pixels)
+    titleLbl = ttk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="white")
+    titleLbl.grid(column=1, row=0, padx=5, sticky="nsew")
+    searchLbl = ttk.Label(leftFrame, text = "Search word definition", background="white")
+    searchLbl.grid(column=0, row=0, sticky="nsew", pady=2)
+    contributeLbl = ttk.Label(rightFrame, text = "Contribute to the dictionary", background="white")
+    contributeLbl.grid(column=0, columnspan=3, row=0, sticky="nsew", pady=2)
+    inputLangLbl = ttk.Label(leftFrame, text = "Choose input language", background="white")
+    inputLangLbl.grid(column=0, row=1, sticky="nsew", pady=2)
+    wordLbl = ttk.Label(bottomFrame, text = "Word/Oshitya", background="white")
+    wordLbl.grid(column=0, row=0, sticky="w")
+    definitionLbl = ttk.Label(bottomFrame, text = "The definition wil appear here", background="white", relief='sunken')
+    definitionLbl.grid(column=0, row=1, sticky="nsew")
+
+    #BUTTONS
+    deleteDefBtn = ttk.Button(rightFrame, text = "Delete definition from database", command=open_delete_definition_window)
+    deleteDefBtn.grid(column=3, row=0, sticky="nsew")
+    searchBtn = ttk.Button(leftFrame, text = "Search")
+    searchBtn.grid(column=1, row=2)
+    addEngBtn = ttk.Button(rightFrame, text = "Add/update English word", command=open_english_window)
+    addEngBtn.grid(column=0, row=1, sticky="nsew")
+    addOshBtn = ttk.Button(rightFrame, text = "Add/Update Oshindonga word", command=open_oshindonga_window)
+    addOshBtn.grid(column=1, row=1, sticky="nsew")
+    addDefBtn = ttk.Button(rightFrame, text = "Add/Update definition", command=open_definition_window)
+    addDefBtn.grid(column=2, row=1, sticky="nsew")
+    deleteWordBtn = ttk.Button(rightFrame, text = "Delete word from database", command=open_delete_word_window)
+    deleteWordBtn.grid(column=3, row=1, sticky="nsew")
+
+    #RADIOBUTTONS
+    englishRbtn = ttk.Radiobutton(leftFrame, text="English", variable=inputLang, value="English")
+    englishRbtn.grid(column=1, row=1, sticky="nsew")
+    oshindongaRbtn = ttk.Radiobutton(leftFrame, text="Oshindonga", variable=inputLang, value="Oshindonga")
+    oshindongaRbtn.grid(column=2, row=1, sticky="nsew")
+
+    #ENTRY WIDGETS
+    searchEbx = ttk.Entry(leftFrame)
+    searchEbx.grid(column=0, row=2, sticky="nsew", pady=2)
+
+    #TEXT WIDGETS
+    #OPTION MENUES
+    #SIZEGRIPs
+    ttk.Sizegrip(mainWindow).grid(column=999, row=999, sticky='se')
+
+    #SCROLLBARS
+    """ defScrb = ttk.Scrollbar(bottomFrame, orient=VERTICAL, command=definitionLbl.yview)
+    defScrb.grid(bottomFrame, column=1, row=1)
+    definitionLbl.configure(yscrollcommand=defScrb.set)
+    """ #Labels are not scrollable
 
 
+open_main_window() #Opens the main window
 
 conn = sqlite3.connect('dictionary.db')
 
