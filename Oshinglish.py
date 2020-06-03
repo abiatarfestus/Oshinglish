@@ -6,7 +6,7 @@ import sqlite3
 
 
 
-def open_engWindow():
+def open_english_window():
     engWindow = tk.Toplevel(mainWindow)
     engWindow.title("Add/Update English word")
     engWindow.resizable(tk.FALSE,tk.FALSE)
@@ -40,14 +40,14 @@ def open_engWindow():
     updateEngRbtn = ttk.Radiobutton(engMainFrame, text="Update", variable=newEng, value="Update")
     updateEngRbtn.grid(column=2, row=2, sticky="nsew")
 
-    #TEXT ENTRY
+    #TEXT ENTRY for multi-line texts
     #ENTRY BOXES
     newEngEbx = ttk.Entry(engMainFrame)
     newEngEbx.grid(column=1, row=1, sticky="nsew", pady=2)
     updateEngEbx = ttk.Entry(engMainFrame)
     updateEngEbx.grid(column=1, row=3, sticky="nsew", pady=2)
 
-def open_oshWindow():
+def open_oshindonga_window():
     oshWindow = tk.Toplevel(mainWindow)
     oshWindow.title("Add/Update Oshindonga word")
     oshWindow.resizable(tk.FALSE,tk.FALSE)
@@ -85,7 +85,7 @@ def open_oshWindow():
     updateOshRbtn = ttk.Radiobutton(oshMainFrame, text="Update", variable=newOsh, value="Update")
     updateOshRbtn.grid(column=2, row=4, sticky="nsew")
 
-    #TEXT ENTRY
+    #TEXT ENTRY for multi-line texts
     #ENTRY BOXES
     engWordIdEbx = ttk.Entry(oshMainFrame)
     engWordIdEbx.grid(column=1, row=1, sticky="nsew", pady=2)
@@ -94,7 +94,7 @@ def open_oshWindow():
     oshWordIdEbx = ttk.Entry(oshMainFrame)
     oshWordIdEbx.grid(column=1, row=5, sticky="nsew", pady=2)
 
-def open_defWindow():
+def open_definition_window():
     defWindow = tk.Toplevel(mainWindow)
     defWindow.title("Add/Update a definition")
     #Configuring column and row resizability
@@ -214,7 +214,8 @@ def open_defWindow():
     adverbRbtn.grid(column=2, row=0, sticky="nsew")
     adjectiveRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adjective", variable=adjectiveDef, value="Adjective")
     adjectiveRbtn.grid(column=3, row=0, sticky="nsew")
-    #TEXT ENTRY
+
+    #TEXT ENTRY for multi-line texts
     engDefTxt = tk.Text(defMidFrame, height=2, width=40)
     engDefTxt.grid(column=1, row=1, sticky="nsew", pady=2)
     engExampleTxt = tk.Text(defMidFrame, height=2, width=40)
@@ -230,6 +231,49 @@ def open_defWindow():
 
     #SIZEGRIPs
     ttk.Sizegrip(defWindow).grid(column=999, row=999, sticky='se')
+
+def open_delete_word_window():
+    delWordWindow = tk.Toplevel(mainWindow)
+    delWordWindow.title("Delete a word from")
+    delWordWindow.resizable(tk.FALSE,tk.FALSE)
+
+    #VARIABLES
+    #Variables for the radiobuttons
+    engDel = tk.StringVar()
+    oshDel = tk.StringVar()
+    
+
+    #FRAMES
+    delWordMainFrame = ttk.Frame(delWordWindow, relief='raised', borderwidth=3)
+    delWordMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
+
+    #LABELS
+    delWordTitleLbl = ttk.Label(delWordMainFrame, text = "Delete a word from the database", anchor=tk.CENTER, background="white")
+    delWordTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
+    oshEngDelLbl = ttk.Label(delWordMainFrame, text = "Choose English/Oshindonga:", background="white")
+    oshEngDelLbl.grid(column=0, row=1, padx=5, pady=3, sticky="nsew")
+    wordIdDelLbl = ttk.Label(delWordMainFrame, text = "ID of word to be deleted:", background="white")
+    wordIdDelLbl.grid(column=0, row=2, padx=5, pady=3, sticky="nsew")
+    wordToDelLbl = ttk.Label(delWordMainFrame, text = "The word you've to delete is:", anchor=tk.CENTER, background="white")
+    wordToDelLbl.grid(column=0, columnspan=3, row=3, padx=5, pady=3, sticky="nsew")
+
+    #BUTTONS
+    searchWordIdDelBtn = ttk.Button(delWordMainFrame, text = "Search database")
+    searchWordIdDelBtn.grid(column=2, row=2, padx=5, sticky="nsew")
+    delWordBtn = ttk.Button(delWordMainFrame, text = "Delete")
+    delWordBtn.grid(column=1, row=4, padx=5, sticky="nsew")
+    cancelDelWordBtn = ttk.Button(delWordMainFrame, text = "Cancel")
+    cancelDelWordBtn.grid(column=2, row=4, padx=5, sticky="nsew")
+    
+    #RADIOBUTTONS
+    engDelRbtn = ttk.Radiobutton(delWordMainFrame, text="English", variable=engDel, value="English")
+    engDelRbtn.grid(column=1, row=1, sticky="nsew")
+    oshDelRbtn = ttk.Radiobutton(delWordMainFrame, text="Oshindonga", variable=oshDel, value="Oshindonga")
+    oshDelRbtn.grid(column=2, row=1, sticky="nsew")
+
+    #ENTRY BOXES
+    wordIdDelEbx = ttk.Entry(delWordMainFrame)
+    wordIdDelEbx.grid(column=1, row=2, sticky="nsew", pady=2)
 
 mainWindow =  ThemedTk(theme="arc") #tk.Tk()
 mainWindow.title("Oshinglish Dictionary First Edition")
@@ -311,13 +355,13 @@ deleteDefBtn = ttk.Button(rightFrame, text = "Delete definition from database")
 deleteDefBtn.grid(column=3, row=0, sticky="nsew")
 searchBtn = ttk.Button(leftFrame, text = "Search")
 searchBtn.grid(column=1, row=2)
-addEngBtn = ttk.Button(rightFrame, text = "Add/update English word", command=open_engWindow)
+addEngBtn = ttk.Button(rightFrame, text = "Add/update English word", command=open_english_window)
 addEngBtn.grid(column=0, row=1, sticky="nsew")
-addOshBtn = ttk.Button(rightFrame, text = "Add/Update Oshindonga word", command=open_oshWindow)
+addOshBtn = ttk.Button(rightFrame, text = "Add/Update Oshindonga word", command=open_oshindonga_window)
 addOshBtn.grid(column=1, row=1, sticky="nsew")
-addDefBtn = ttk.Button(rightFrame, text = "Add/Update definition", command=open_defWindow)
+addDefBtn = ttk.Button(rightFrame, text = "Add/Update definition", command=open_definition_window)
 addDefBtn.grid(column=2, row=1, sticky="nsew")
-deleteWordBtn = ttk.Button(rightFrame, text = "Delete word from database")
+deleteWordBtn = ttk.Button(rightFrame, text = "Delete word from database", command=open_delete_word_window)
 deleteWordBtn.grid(column=3, row=1, sticky="nsew")
 
 #RADIOBUTTONS
