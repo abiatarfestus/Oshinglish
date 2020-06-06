@@ -1,9 +1,172 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 #import ttkthemes
 from ttkthemes import ThemedTk
 import sqlite3
 
+conn = sqlite3.connect('dictionary.db')
+
+c = conn.cursor()
+
+"""The syntax to create a foreign key using a CREATE TABLE statement in SQLite is:
+CREATE TABLE suppliers (
+    supplier_id   INTEGER PRIMARY KEY,
+    supplier_name TEXT    NOT NULL,
+    group_id      INTEGER,
+    FOREIGN KEY (group_id)
+    REFERENCES supplier_groups (group_id) 
+       ON UPDATE CASCADE
+       ON DELETE CASCADE
+);"""
+
+c.executescript("""PRAGMA foreign_keys = ON;
+            CREATE TABLE IF NOT EXISTS english (
+            id INTEGER PRIMARY KEY,
+            word TEXT NOT NULL UNIQUE);
+
+            CREATE TABLE IF NOT EXISTS oshindonga (
+            id INTEGER PRIMARY KEY,            
+            word TEXT NOT NULL,
+            english_id INTEGER NOT NULL,
+            FOREIGN KEY (english_id)
+            REFERENCES english (id)
+                ON UPDATE CASCADE
+                ON DELETE RESTRICT);
+
+            CREATE TABLE IF NOT EXISTS nouns (
+            id INTEGER PRIMARY KEY,
+            english_id TEXT NOT NULL,
+            oshindonga_id INTEGER NOT NULL,
+            english_definition TEXT NOT NULL,
+            english_example TEXT NOT NULL,
+            oshindonga_definition TEXT NOT NULL,
+            oshindonga_example TEXT NOT NULL,
+            FOREIGN KEY (english_id)
+            REFERENCES english (id)
+                ON UPDATE CASCADE
+                ON DELETE RESTRICT,
+            FOREIGN KEY (oshindonga_id)
+            REFERENCES oshindonga (id)
+                ON UPDATE CASCADE
+                ON DELETE RESTRICT);
+
+            CREATE TABLE IF NOT EXISTS verbs (
+            id INTEGER PRIMARY KEY,
+            english_id TEXT NOT NULL,
+            oshindonga_id INTEGER NOT NULL,
+            english_definition TEXT NOT NULL,
+            english_example TEXT NOT NULL,
+            oshindonga_definition TEXT NOT NULL,
+            oshindonga_example TEXT NOT NULL,
+            FOREIGN KEY (english_id)
+            REFERENCES english (id)
+                ON UPDATE CASCADE
+                ON DELETE RESTRICT,
+            FOREIGN KEY (oshindonga_id)
+            REFERENCES oshindonga (id)
+                ON UPDATE CASCADE
+                ON DELETE RESTRICT)
+            """)
+
+#Functions
+#Add an English word
+def add_english_word(word=""):
+    #Remember to LOWERCASE word
+    word = newEngEbx.get()
+    with conn:
+        c.execute("INSERT INTO english (word) VALUES (?)", (word,))
+    newEngEbx.delete(0, tk.END)
+
+#Add Oshindonga word
+def add_oshindonga_word(word="", engId=0):
+    word = newEngEbx.get()
+    engId = find_english_word(word)
+    with conn:
+        c.execute("INSERT INTO oshindonga (word, english_id) VALUES (?,?)", (word, engId))
+
+#Add a noun definiton
+def add_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
+    with conn:
+        c.execute("""INSERT INTO nouns (english_id, oshindonga_id, english_definition,
+                    english_example, oshindonga_definition, oshindonga_example) 
+                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
+
+#Add a verb definition
+def add_verb_definition(engId, oshId, engDef, engEx, oshDef, oshEx):
+    with conn:
+        c.execute("""INSERT INTO verbs (english_id, oshindonga_id, english_definition,
+                    english_example, oshindonga_definition, oshindonga_example) 
+                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engDef, engEx, oshDef, oshEx))
+
+#Get a definition
+def find_english_word(word): #Returns input value/argument for find_definition if word found
+    with conn:
+        c.execute("SELECT id FROM english WHERE word=(?)", (word,))
+        result = c.fetchone()
+        if result == None:
+            return "Word not found"
+        else:
+            return result[0] #Retuns id (english_id)
+
+def find_oshindonga_word(word): #Returns input value/argument for find_definition if word found
+    with conn:
+        c.execute("SELECT english_id FROM oshindonga WHERE word=(?)", (word,))
+        result = c.fetchone()
+        if result == None:
+            return "Oshitya inashi monika"
+        else:
+            return result[0]    #Returns english_id, which should be passed to find definition
+
+#Search part of speech tables for definitions
+def find_definition(wordID):
+    with conn:
+        definitions = []
+        tables = ["noun", "verb"]
+        definition = []
+        squery = ""
+        for table in tables:
+            squery ="SELECT * FROM {} WHERE english_id=(?)".format(table + "s") #Assign select statement to squery (for dynamic table selectio)
+            c.execute(squery, (wordID,))
+            definition = c.fetchall()
+            if definition != []:
+                definitions.extend([table.capitalize()+":"]) #Adds Part of speech before definitons
+                #definitions.extend([table.capitalize()+":", definition])
+                for i in definition[0]: #Takes tuple elements and add them to definitions
+                    definitions.append(i)
+        if definitions == []:
+            return "No definition found"
+        return definitions
+
+def remove_oshindonga_word(id):
+    with conn:
+        c.execute("DELETE FROM oshindonga WHERE id = (?)", (id,))
+
+def remove_english_word(id):
+    with conn:
+        c.execute("DELETE FROM english WHERE id = (?)", (id,))
+
+def remove_definition(table, id):
+    with conn:
+        squery ="SELECT * FROM {} WHERE english_id = (?)".format(table)
+        c.execute(squery, (id,))
+
+#Update/modify words and definitions
+def update_english_word(word, id):
+    with conn:
+        c.execute("UPDATE english SET word = (?) WHERE id = (?)", (word, id))
+
+def update_oshindonga_word(word, id):
+    with conn:
+        c.execute("UPDATE oshindonga SET word = (?) WHERE id = (?)", (word, id))
+
+def update_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx, id):
+    with conn:
+        uquery = """UPDATE {} SET english_id = (?), oshindonga_id = (?), english_definition = (?), 
+        english_example = (?), oshindonga_definition = (?), oshindonga_example = (?) WHERE id = (?)""".format(table)
+        c.execute(uquery, (engId, oshId, engDef, engEx, oshDef, oshEx, id))
+
+#conn.close()
 
 
 def open_english_window():
@@ -13,6 +176,11 @@ def open_english_window():
 
     #VARIABLES
     newEng = tk.StringVar()
+
+    #FUNCTIONS
+#    def select_new_or_english():
+#         #newOrupdate = newEng
+#         if newOrupdate = newEng.get() == "New":
 
     #FRAMES
     engMainFrame = ttk.Frame(engWindow, borderwidth=3)
@@ -30,7 +198,9 @@ def open_english_window():
     newEngDisplayLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
     newEngDisplayLbl.grid(column=0, columnspan=3, row=4, padx=5, pady=5, sticky="nsew")
     #BUTTONS
-    newEngSaveBtn = ttk.Button(engMainFrame, text = "Save")
+    newEngSearchBtn = ttk.Button(engMainFrame, text = "Search")
+    newEngSearchBtn.grid(column=2, row=3, padx=5, sticky="nsew")
+    newEngSaveBtn = ttk.Button(engMainFrame, text = "Save", command=add_english_word)
     newEngSaveBtn.grid(column=0, row=5, padx=5, sticky="nsew")
     newEngCancelBtn = ttk.Button(engMainFrame, text = "Cancel")
     newEngCancelBtn.grid(column=1, row=5, padx=5, sticky="nsew")
@@ -42,6 +212,7 @@ def open_english_window():
 
     #TEXT ENTRY for multi-line texts
     #ENTRY BOXES
+    global newEngEbx
     newEngEbx = ttk.Entry(engMainFrame)
     newEngEbx.grid(column=1, row=1, sticky="nsew", pady=2)
     updateEngEbx = ttk.Entry(engMainFrame)
@@ -334,9 +505,28 @@ def open_main_window():
     mainWindow.rowconfigure(0, weight=1)
 
     #VARIABLES
+    #global inputLang
+    searchedWord = tk.StringVar()
+    searchedWord.set("No word to display")
     inputLang = tk.StringVar() #variable for input language radiobuttons
     #inputLang.set("English")
+    # def set_input_language():
+    #     inputLang.set(value)
     logo = tk.PhotoImage(file='Logo.gif')
+    mainDefinition = "No definition to display"
+                    
+    def select_def_to_search():     #
+        language = inputLang.get()  #Checks language input selected on radiobutton
+        if language == "English":
+            mainDefinition = find_definition(find_english_word(searchEbx.get()))    #gets word in the entrybox, passes it to find_english_word(), which is passed to find_definition(), then assigns it to mainDefinition
+        elif language == "Oshindonga":
+            mainDefinition = find_definition(find_oshindonga_word(searchEbx.get())) #gets word in the entrybox, passes it to find_oshindonga_word(), which is passed to find_definition(), then assigns it to mainDefinition
+        else:
+            return messagebox.showerror(title="Input language", message="You did not select an input language.\nSelect the input language and search again.")
+        searchedWord.set(searchEbx.get())   #Gets the word in entrybox and assigns it to searchedWord StringVar for display at the top of the text widget
+        definitionTxt.delete("1.0", tk.END) #Clears the text widget
+        definitionTxt.insert(tk.END, mainDefinition)    #Inserts the value of mainDefinition into the text widget
+        return
 
     #FRAMES
     mainFrame = ttk.Frame(mainWindow, relief='raised', borderwidth=3)
@@ -377,7 +567,7 @@ def open_main_window():
     bottomFrame.rowconfigure((1), weight=1)
 
     #LABELS
-    logoLbl = ttk.Label(topFrame, image = logo)
+    logoLbl = tk.Label(topFrame, image = logo) #Need to fix the problem with displaying logo
     logoLbl.grid(column=0, row=0, sticky="w")
     #mainWindow.rowconfigure(1, weight=0, minsize=25) #Inserts an empty row btwn the 2 labels (NB: minsize is in pixels)
     titleLbl = ttk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="white")
@@ -388,15 +578,14 @@ def open_main_window():
     contributeLbl.grid(column=0, columnspan=3, row=0, sticky="nsew", pady=2)
     inputLangLbl = ttk.Label(leftFrame, text = "Choose input language", background="white")
     inputLangLbl.grid(column=0, row=1, sticky="nsew", pady=2)
-    wordLbl = ttk.Label(bottomFrame, text = "Word/Oshitya", background="white")
+    wordLbl = ttk.Label(bottomFrame, textvariable=searchedWord, background="white")
     wordLbl.grid(column=0, row=0, sticky="w")
-    definitionLbl = ttk.Label(bottomFrame, text = "The definition wil appear here", background="white", relief='sunken')
-    definitionLbl.grid(column=0, row=1, sticky="nsew")
+   
 
     #BUTTONS
     deleteDefBtn = ttk.Button(rightFrame, text = "Delete definition from database", command=open_delete_definition_window)
     deleteDefBtn.grid(column=3, row=0, sticky="nsew")
-    searchBtn = ttk.Button(leftFrame, text = "Search")
+    searchBtn = ttk.Button(leftFrame, text = "Search", command=select_def_to_search)
     searchBtn.grid(column=1, row=2)
     addEngBtn = ttk.Button(rightFrame, text = "Add/update English word", command=open_english_window)
     addEngBtn.grid(column=0, row=1, sticky="nsew")
@@ -418,172 +607,23 @@ def open_main_window():
     searchEbx.grid(column=0, row=2, sticky="nsew", pady=2)
 
     #TEXT WIDGETS
+    definitionTxt = tk.Text(bottomFrame, background="white", height=10, width=100)
+    definitionTxt.grid(column=0, row=1, sticky="nsew")
+    definitionTxt.insert(tk.END, mainDefinition)
     #OPTION MENUES
     #SIZEGRIPs
     ttk.Sizegrip(mainWindow).grid(column=999, row=999, sticky='se')
 
     #SCROLLBARS
-    """ defScrb = ttk.Scrollbar(bottomFrame, orient=VERTICAL, command=definitionLbl.yview)
-    defScrb.grid(bottomFrame, column=1, row=1)
-    definitionLbl.configure(yscrollcommand=defScrb.set)
-    """ #Labels are not scrollable
+    defScrb = tk.Scrollbar(bottomFrame, orient=tk.VERTICAL, command=definitionTxt.yview)
+    defScrb.grid(column=1, row=1, sticky="ns")
+    definitionTxt.configure(yscrollcommand=defScrb.set)
+    
 
 
 open_main_window() #Opens the main window
 
-conn = sqlite3.connect('dictionary.db')
 
-c = conn.cursor()
-
-"""The syntax to create a foreign key using a CREATE TABLE statement in SQLite is:
-CREATE TABLE suppliers (
-    supplier_id   INTEGER PRIMARY KEY,
-    supplier_name TEXT    NOT NULL,
-    group_id      INTEGER,
-    FOREIGN KEY (group_id)
-    REFERENCES supplier_groups (group_id) 
-       ON UPDATE CASCADE
-       ON DELETE CASCADE
-);"""
-
-c.executescript("""PRAGMA foreign_keys = ON;
-            CREATE TABLE IF NOT EXISTS english (
-            id INTEGER PRIMARY KEY,
-            word TEXT NOT NULL UNIQUE);
-
-            CREATE TABLE IF NOT EXISTS oshindonga (
-            id INTEGER PRIMARY KEY,            
-            word TEXT NOT NULL,
-            english_id INTEGER NOT NULL,
-            FOREIGN KEY (english_id)
-            REFERENCES english (id)
-                ON UPDATE CASCADE
-                ON DELETE RESTRICT);
-
-            CREATE TABLE IF NOT EXISTS nouns (
-            id INTEGER PRIMARY KEY,
-            english_id TEXT NOT NULL,
-            oshindonga_id INTEGER NOT NULL,
-            english_definition TEXT NOT NULL,
-            english_example TEXT NOT NULL,
-            oshindonga_definition TEXT NOT NULL,
-            oshindonga_example TEXT NOT NULL,
-            FOREIGN KEY (english_id)
-            REFERENCES english (id)
-                ON UPDATE CASCADE
-                ON DELETE RESTRICT,
-            FOREIGN KEY (oshindonga_id)
-            REFERENCES oshindonga (id)
-                ON UPDATE CASCADE
-                ON DELETE RESTRICT);
-
-            CREATE TABLE IF NOT EXISTS verbs (
-            id INTEGER PRIMARY KEY,
-            english_id TEXT NOT NULL,
-            oshindonga_id INTEGER NOT NULL,
-            english_definition TEXT NOT NULL,
-            english_example TEXT NOT NULL,
-            oshindonga_definition TEXT NOT NULL,
-            oshindonga_example TEXT NOT NULL,
-            FOREIGN KEY (english_id)
-            REFERENCES english (id)
-                ON UPDATE CASCADE
-                ON DELETE RESTRICT,
-            FOREIGN KEY (oshindonga_id)
-            REFERENCES oshindonga (id)
-                ON UPDATE CASCADE
-                ON DELETE RESTRICT)
-            """)
-
-#Functions
-#Add an English word
-def add_english_word(word):
-    #Remember to LOWERCASE word
-    with conn:
-        c.execute("INSERT INTO english (word) VALUES (?)", (word,))
-
-#Add Oshindonga word
-def add_oshindonga_word(word, engId):
-    with conn:
-        c.execute("INSERT INTO oshindonga (word, english_id) VALUES (?,?)", (word, engId))
-
-#Add a noun definiton
-def add_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
-    with conn:
-        c.execute("""INSERT INTO nouns (english_id, oshindonga_id, english_definition,
-                    english_example, oshindonga_definition, oshindonga_example) 
-                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
-
-#Add a verb definition
-def add_verb_definition(engId, oshId, engDef, engEx, oshDef, oshEx):
-    with conn:
-        c.execute("""INSERT INTO verbs (english_id, oshindonga_id, english_definition,
-                    english_example, oshindonga_definition, oshindonga_example) 
-                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engDef, engEx, oshDef, oshEx))
-
-#Get a definition
-def find_english_word(word): #Returns input value/argument for find_definition if word found
-    c.execute("SELECT id FROM english WHERE word=(?)", (word,))
-    result = c.fetchone()
-    if result == None:
-        return "Word not found"
-    else:
-        return result[0] #Retuns id (english_id)
-
-def find_oshindonga_word(word): #Returns input value/argument for find_definition if word found
-    c.execute("SELECT english_id FROM oshindonga WHERE word=(?)", (word,))
-    result = c.fetchone()
-    if result == None:
-        return "Oshitya inashi monika"
-    else:
-        return result[0]    #Returns english_id, which should be passed to find definition
-
-#Search part of speech tables for definitions
-def find_definition(wordID):
-    definitions = []
-    tables = ["noun", "verb"]
-    definition = []
-    squery = ""
-    for table in tables:
-        squery ="SELECT * FROM {} WHERE english_id=(?)".format(table + "s") #Assign select statement to squery (for dynamic table selectio)
-        c.execute(squery, (wordID,))
-        definition = c.fetchall()
-        if definition != []:
-            definitions.extend([table.capitalize()+":"]) #Adds Part of speech before definitons
-            #definitions.extend([table.capitalize()+":", definition])
-            for i in definition[0]: #Takes tuple elements and add them to definitions
-                definitions.append(i)
-    if definitions == []:
-        return "No definition found"
-    return definitions
-
-def remove_oshindonga_word(id):
-    with conn:
-        c.execute("DELETE FROM oshindonga WHERE id = (?)", (id,))
-
-def remove_english_word(id):
-    with conn:
-        c.execute("DELETE FROM english WHERE id = (?)", (id,))
-
-def remove_definition(table, id):
-    with conn:
-        squery ="SELECT * FROM {} WHERE english_id = (?)".format(table)
-        c.execute(squery, (id,))
-
-#Update/modify words and definitions
-def update_english_word(word, id):
-    with conn:
-        c.execute("UPDATE english SET word = (?) WHERE id = (?)", (word, id))
-
-def update_oshindonga_word(word, id):
-    with conn:
-        c.execute("UPDATE oshindonga SET word = (?) WHERE id = (?)", (word, id))
-
-def update_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx, id):
-    with conn:
-        uquery = """UPDATE {} SET english_id = (?), oshindonga_id = (?), english_definition = (?), 
-        english_example = (?), oshindonga_definition = (?), oshindonga_example = (?) WHERE id = (?)""".format(table)
-        c.execute(uquery, (engId, oshId, engDef, engEx, oshDef, oshEx, id))
 
 words = ["lightining", "scar", "ball", "person", "play", "phone", "car", "speak", "cup", "rain"]
 iitya = ["olwaadhi", "oshiyadhi", "etanga", "omuntu", "dhana", "ongodhi", "ohauto", "popya", "ekopi", "omvula"]
@@ -602,11 +642,11 @@ for word in iitya:
 #add_oshindonga_word("oshinyandwa", 5)
 
 #remove_oshindonga_word(1)
-'''
+
 english = c.execute("SELECT * FROM english")
 print(c.fetchall())
 oshindonga = c.execute("SELECT * FROM oshindonga")
-print(c.fetchall())'''
+print(c.fetchall())
 
 #add_noun_definition(5, 5, "A drama played by actors", "They performed a play by Shakespeare", 
                     #"Oshinyandwa tshi li kombinga yokahokololo", "Oya dhana oshinyandwa oshiwanawa")
@@ -627,7 +667,7 @@ print(c.fetchall())'''
 
 
 
-conn.close()
 
+#conn.close()
 
 mainWindow.mainloop()
