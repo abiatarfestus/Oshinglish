@@ -72,18 +72,31 @@ c.executescript("""PRAGMA foreign_keys = ON;
 #Functions
 #Add an English word
 def add_english_word(word=""):
-    #Remember to LOWERCASE word
-    word = newEngEbx.get()
-    with conn:
-        c.execute("INSERT INTO english (word) VALUES (?)", (word,))
-    newEngEbx.delete(0, tk.END)
+    #print("Entered add english word function")
+    word = newEngEbx.get().lower()
+    try:
+        with conn:
+            c.execute("INSERT INTO english (word) VALUES (?)", (word,))
+        newEngEbx.delete(0, tk.END)
+    except sqlite3.IntegrityError as error:
+        messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
+    else:
+        messagebox.showinfo(title="Word added", message= "Word successfully added to the dictionary.")
+        
+
 
 #Add Oshindonga word
 def add_oshindonga_word(word="", engId=0):
-    word = newEngEbx.get()
+    word = newEngEbx.get().lower()
     engId = find_english_word(word)
-    with conn:
-        c.execute("INSERT INTO oshindonga (word, english_id) VALUES (?,?)", (word, engId))
+    try:
+        with conn:
+            c.execute("INSERT INTO oshindonga (word, english_id) VALUES (?,?)", (word, engId))
+        newEngEbx.delete(0, tk.END)
+    except sqlite3.IntegrityError as error:
+        messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
+    else:
+        messagebox.showinfo(title="Word added", message= "Word successfully added to the dictionary.")
 
 #Add a noun definiton
 def add_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
@@ -152,9 +165,29 @@ def remove_definition(table, id):
         c.execute(squery, (id,))
 
 #Update/modify words and definitions
-def update_english_word(word, id):
-    with conn:
-        c.execute("UPDATE english SET word = (?) WHERE id = (?)", (word, id))
+def update_english_word(word="", id=0):
+    word = newEngEbx.get()
+    try: 
+        id = int(updateEngEbx.get()) #Gets the value from the update entybox, converts it to int (to match id data type)
+    except ValueError:
+         messagebox.showerror(title="Invalid ID", message= "No word ID or invalid ID was entered.\nEnter valid ID and try again.")
+    else:
+        with conn:
+            c.execute("SELECT word FROM english WHERE id=(?)", (updateEngEbx.get(),))
+            result = c.fetchone()
+            if result == None:
+                return messagebox.showerror(title="ID not found", message= "The ID entered was not found in the database.\nEnter a valid ID and try again.")
+            else:
+                try:
+                    with conn:
+                        c.execute("UPDATE english SET word = (?) WHERE id = (?)", (word, id))
+                    newEngEbx.delete(0, tk.END)
+                    updateEngEbx.delete(0, tk.END)
+                except sqlite3.IntegrityError as error:
+                    messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
+                else:
+                    messagebox.showinfo(title="Word updated", message= "Word was successfully updated.")
+
 
 def update_oshindonga_word(word, id):
     with conn:
@@ -176,11 +209,29 @@ def open_english_window():
 
     #VARIABLES
     newEng = tk.StringVar()
+    #newEngDisplay = tk.StringVar()
+    #newEngDisplay.set("ID of word to be update:::")
 
     #FUNCTIONS
-#    def select_new_or_english():
-#         #newOrupdate = newEng
-#         if newOrupdate = newEng.get() == "New":
+    def select_new_or_update_english():     #Decides which function to run between new and update english based on the selected operation
+        newOrUpdate = newEng.get()  #Checks option selected on radiobutton (new/update)
+        #print(newOrUpdate)
+        if newOrUpdate == "New":
+            add_english_word()    #Calls the add_english_word function
+        elif newOrUpdate == "Update":
+            update_english_word() #Calls the update_english_word function
+        else:
+            return messagebox.showerror(title="Operation unknown", message="Operation not specified.\nSelect New or Update and search again.")
+        newEng.set(None)
+        return
+
+    def search_if_english_word_exist(word=""):
+        word = newEngEbx.get()
+        searchResult = find_english_word(word)
+        updateEngEbx.delete(0, tk.END) #Clears the textbox before inserting the returned ID/result
+        updateEngEbx.insert(tk.INSERT, searchResult)
+        #newEngDisplay.set("ID of word to be update: " + searchResult)
+        #newEngDisplayLbl.configure(textvariable=newEngDisplay)
 
     #FRAMES
     engMainFrame = ttk.Frame(engWindow, borderwidth=3)
@@ -195,12 +246,12 @@ def open_english_window():
     newUpdateEngLbl.grid(column=0, row=2, padx=5, pady=5, sticky="nsew")
     newEngIdLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
     newEngIdLbl.grid(column=0, row=3, padx=5, pady=5, sticky="nsew")
-    newEngDisplayLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
-    newEngDisplayLbl.grid(column=0, columnspan=3, row=4, padx=5, pady=5, sticky="nsew")
+    #newEngDisplayLbl = ttk.Label(engMainFrame, textvariable=newEngDisplay, background="white")
+    #newEngDisplayLbl.grid(column=0, columnspan=3, row=4, padx=5, pady=5, sticky="nsew")
     #BUTTONS
-    newEngSearchBtn = ttk.Button(engMainFrame, text = "Search")
-    newEngSearchBtn.grid(column=2, row=3, padx=5, sticky="nsew")
-    newEngSaveBtn = ttk.Button(engMainFrame, text = "Save", command=add_english_word)
+    newEngSearchBtn = ttk.Button(engMainFrame, text = "Search", command=search_if_english_word_exist)
+    newEngSearchBtn.grid(column=2, row=1, padx=5, sticky="nsew")
+    newEngSaveBtn = ttk.Button(engMainFrame, text = "Save", command=select_new_or_update_english)
     newEngSaveBtn.grid(column=0, row=5, padx=5, sticky="nsew")
     newEngCancelBtn = ttk.Button(engMainFrame, text = "Cancel")
     newEngCancelBtn.grid(column=1, row=5, padx=5, sticky="nsew")
@@ -213,6 +264,7 @@ def open_english_window():
     #TEXT ENTRY for multi-line texts
     #ENTRY BOXES
     global newEngEbx
+    global updateEngEbx
     newEngEbx = ttk.Entry(engMainFrame)
     newEngEbx.grid(column=1, row=1, sticky="nsew", pady=2)
     updateEngEbx = ttk.Entry(engMainFrame)
@@ -568,6 +620,7 @@ def open_main_window():
 
     #LABELS
     logoLbl = tk.Label(topFrame, image = logo) #Need to fix the problem with displaying logo
+    logoLbl.image = logo #Keeps a reference to avoid blanking of the image (http://effbot.org/pyfaq/why-do-my-tkinter-images-not-appear.htm)
     logoLbl.grid(column=0, row=0, sticky="w")
     #mainWindow.rowconfigure(1, weight=0, minsize=25) #Inserts an empty row btwn the 2 labels (NB: minsize is in pixels)
     titleLbl = ttk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="white")
