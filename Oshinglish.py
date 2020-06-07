@@ -81,22 +81,25 @@ def add_english_word(word=""):
     except sqlite3.IntegrityError as error:
         messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
     else:
-        messagebox.showinfo(title="Word added", message= "Word successfully added to the dictionary.")
+        messagebox.showinfo(title="Word added", message= "The word " +word+ " was successfully added to the dictionary.")
         
 
 
 #Add Oshindonga word
-def add_oshindonga_word(word="", engId=0):
-    word = newEngEbx.get().lower()
-    engId = find_english_word(word)
+def add_oshindonga_word(word="", engId=0): #Remove arguments if not necessary
+    word = newOshEbx.get().lower()
+    engId = find_english_word(engWordEbx.get().lower())
     try:
         with conn:
             c.execute("INSERT INTO oshindonga (word, english_id) VALUES (?,?)", (word, engId))
-        newEngEbx.delete(0, tk.END)
+        newOshEbx.delete(0, tk.END)
+        engWordEbx.delete(0, tk.END)
+        global displayEngId3
+        displayEngId3 = ""      #Resets the the variable of English word ID to avoid inadvertent linking of Oshindonga words to wrong English words
     except sqlite3.IntegrityError as error:
         messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
     else:
-        messagebox.showinfo(title="Word added", message= "Word successfully added to the dictionary.")
+        messagebox.showinfo(title="Word added", message= "The word " +word+ " was successfully added to the dictionary.")
 
 #Add a noun definiton
 def add_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
@@ -168,13 +171,14 @@ def remove_definition(table, id):
 def update_english_word(word="", id=0):
     word = newEngEbx.get()
     try: 
-        id = int(updateEngEbx.get()) #Gets the value from the update entybox, converts it to int (to match id data type)
+        id = int(updateEngEbx.get()) #Gets the value from the update entrybox, converts it to int (to match id data type)
     except ValueError:
-         messagebox.showerror(title="Invalid ID", message= "No word ID or invalid ID was entered.\nEnter valid ID and try again.")
+         messagebox.showerror(title="English ID error", message= "No word ID or invalid ID was entered.\nEnter valid ID and try again.")
     else:
         with conn:
-            c.execute("SELECT word FROM english WHERE id=(?)", (updateEngEbx.get(),))
+            c.execute("SELECT word FROM english WHERE id=(?)", (updateEngEbx.get(), id))
             result = c.fetchone()
+            #print("Result: ", result)
             if result == None:
                 return messagebox.showerror(title="ID not found", message= "The ID entered was not found in the database.\nEnter a valid ID and try again.")
             else:
@@ -186,12 +190,27 @@ def update_english_word(word="", id=0):
                 except sqlite3.IntegrityError as error:
                     messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
                 else:
-                    messagebox.showinfo(title="Word updated", message= "Word was successfully updated.")
+                    messagebox.showinfo(title="Word updated", message= "The word was successfully updated.")
 
 
-def update_oshindonga_word(word, id):
-    with conn:
-        c.execute("UPDATE oshindonga SET word = (?) WHERE id = (?)", (word, id))
+def update_oshindonga_word(word="", id=0):
+    word = newOshEbx.get()
+    try: 
+        id = int(oshWordIdEbx.get()) #Gets the value from the update entrybox, converts it to int (to match id data type)
+    except ValueError:
+         messagebox.showerror(title="Oshindonga ID error 1", message= "No word ID or invalid ID was entered. Enter valid ID, click search and try again if the word you wish to modify appears below.")
+    else:
+        with conn:
+            c.execute("SELECT word FROM oshindonga WHERE id=(?)", (word, id))
+            result = c.fetchone()
+            if result == None:      #This checks if the ID exists before trying to update the word
+                return messagebox.showerror(title="Oshindonga ID error 2", message= "The ID entered was not found in the database.Enter valid ID, click search. If no word is returned, select New instead of Update.")
+            else:
+                with conn:
+                    c.execute("UPDATE oshindonga SET word = (?) WHERE id = (?)", (word, id))
+                newOshEbx.delete(0, tk.END)
+                oshWordIdEbx.delete(0, tk.END)
+                messagebox.showinfo(title="Word updated", message= "Word was successfully updated.")
 
 def update_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx, id):
     with conn:
@@ -208,21 +227,21 @@ def open_english_window():
     engWindow.resizable(tk.FALSE,tk.FALSE)
 
     #VARIABLES
-    newEng = tk.StringVar()
+    engSelectedRbtn = tk.StringVar()
     #newEngDisplay = tk.StringVar()
     #newEngDisplay.set("ID of word to be update:::")
 
     #FUNCTIONS
     def select_new_or_update_english():     #Decides which function to run between new and update english based on the selected operation
-        newOrUpdate = newEng.get()  #Checks option selected on radiobutton (new/update)
-        #print(newOrUpdate)
-        if newOrUpdate == "New":
+        newOrUpdateEng = engSelectedRbtn.get()  #Checks option selected on radiobutton (new/update)
+        #print(newOrUpdateEng)
+        if newOrUpdateEng == "New":
             add_english_word()    #Calls the add_english_word function
-        elif newOrUpdate == "Update":
+        elif newOrUpdateEng == "Update":
             update_english_word() #Calls the update_english_word function
         else:
             return messagebox.showerror(title="Operation unknown", message="Operation not specified.\nSelect New or Update and search again.")
-        newEng.set(None)
+        engSelectedRbtn.set(None)
         return
 
     def search_if_english_word_exist(word=""):
@@ -256,9 +275,9 @@ def open_english_window():
     newEngCancelBtn = ttk.Button(engMainFrame, text = "Cancel")
     newEngCancelBtn.grid(column=1, row=5, padx=5, sticky="nsew")
     #RADIOBUTTONS
-    newEngRbtn = ttk.Radiobutton(engMainFrame, text="New", variable=newEng, value="New")
+    newEngRbtn = ttk.Radiobutton(engMainFrame, text="New", variable=engSelectedRbtn, value="New")
     newEngRbtn.grid(column=1, row=2, sticky="nsew")
-    updateEngRbtn = ttk.Radiobutton(engMainFrame, text="Update", variable=newEng, value="Update")
+    updateEngRbtn = ttk.Radiobutton(engMainFrame, text="Update", variable=engSelectedRbtn, value="Update")
     updateEngRbtn.grid(column=2, row=2, sticky="nsew")
 
     #TEXT ENTRY for multi-line texts
@@ -276,7 +295,37 @@ def open_oshindonga_window():
     oshWindow.resizable(tk.FALSE,tk.FALSE)
 
     #VARIABLES
-    newOsh = tk.StringVar()
+    oshSelectedRbtn = tk.StringVar()
+    displayEngId = tk.StringVar()
+    displayEngId1 = "The ID of "
+    displayEngId2 = ""
+    global displayEngId3
+    displayEngId3 = ""
+    displayEngId.set(displayEngId1 + '"' + displayEngId2 + '" is: ' + str(displayEngId3))
+
+    def search_english_word(word=""):
+        word = engWordEbx.get().lower() # Remember to search for other places to add .lower()
+        displayEngId2 = word
+        #global displayEngId3
+        displayEngId3 = find_english_word(word) #Returns the English word ID and assign it to this variable
+        displayEngId.set(displayEngId1 + '"' + displayEngId2 + '" is: ' + str(displayEngId3))
+        print("EnglishID:", displayEngId3)
+
+    def select_new_or_update_oshindonga():     #Decides which function to run between new and update oshindonga based on the selected operation
+        newOrUpdateOsh = oshSelectedRbtn.get()  #Gets option selected on radiobutton (new/update)
+        print("EnglishID:", displayEngId3)
+        if newOrUpdateOsh == "New":
+            print("EnglishID:", displayEngId3)
+            if displayEngId3 == "" or displayEngId3 == "Word not found": #When user tries to save before searhing for the English word
+                return messagebox.showerror(title="English ID error", message="English word ID is not provided. Search for the English word and try again. If the corresponding English word is not in the database, add it first.")
+            else:
+                add_english_word()    #Calls the add_oshindonga_word function
+        elif newOrUpdateOsh == "Update":
+            update_oshindonga_word() #Calls the update_oshindonga_word function
+        else:
+            return messagebox.showerror(title="Operation unknown", message="Operation not specified.\nSelect New or Update and search again.")
+        oshSelectedRbtn.set(None)
+        return
 
     #FRAMES
     oshMainFrame = ttk.Frame(oshWindow, borderwidth=3)
@@ -285,9 +334,9 @@ def open_oshindonga_window():
     #LABELS
     newOshTitleLbl = ttk.Label(oshMainFrame, text = "Add or update an Oshindonga word", anchor=tk.CENTER, background="white")
     newOshTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
-    engWordIdLbl = ttk.Label(oshMainFrame, text = "Enter the English word ID:", background="white")
+    engWordIdLbl = ttk.Label(oshMainFrame, text = "Enter the corresponding English word:", background="white")
     engWordIdLbl.grid(column=0, row=1, padx=5, pady=5, sticky="nsew")
-    engWordDisplayLbl = ttk.Label(oshMainFrame, text = "Display the English word (Default: Invalid English word ID", anchor=tk.CENTER, background="white")
+    engWordDisplayLbl = ttk.Label(oshMainFrame, textvariable = displayEngId, anchor=tk.CENTER, background="white")
     engWordDisplayLbl.grid(column=0, columnspan=3, row=2, padx=5, pady=5, sticky="nsew")
     newOshWordLbl = ttk.Label(oshMainFrame, text = "Enter new Oshindonga word:", background="white")
     newOshWordLbl.grid(column=0, row=3, padx=5, pady=5, sticky="nsew")
@@ -298,20 +347,27 @@ def open_oshindonga_window():
     oshWordDisplayLbl = ttk.Label(oshMainFrame, text = "Display Oshindonga word to be updated (Default: Invalid word ID)", anchor=tk.CENTER, background="white")
     oshWordDisplayLbl.grid(column=0, columnspan=3, row=6, padx=5, pady=5, sticky="nsew")
     #BUTTONS
-    newOshSaveBtn = ttk.Button(oshMainFrame, text = "Save")
+    searchEngIdBtn = ttk.Button(oshMainFrame, text = "Search", command=search_english_word)
+    searchEngIdBtn.grid(column=2, row=1, padx=5, sticky="nsew")
+    searchOshIdBtn = ttk.Button(oshMainFrame, text = "Search")
+    searchOshIdBtn.grid(column=2, row=5, padx=5, sticky="nsew")
+    newOshSaveBtn = ttk.Button(oshMainFrame, text = "Save", command=select_new_or_update_oshindonga)
     newOshSaveBtn.grid(column=0, row=7, padx=5, sticky="nsew")
     newOshCancelBtn = ttk.Button(oshMainFrame, text = "Cancel")
     newOshCancelBtn.grid(column=1, row=7, padx=5, sticky="nsew")
     #RADIOBUTTONS
-    newOshRbtn = ttk.Radiobutton(oshMainFrame, text="New", variable=newOsh, value="New")
+    newOshRbtn = ttk.Radiobutton(oshMainFrame, text="New", variable=oshSelectedRbtn, value="New")
     newOshRbtn.grid(column=1, row=4, sticky="nsew")
-    updateOshRbtn = ttk.Radiobutton(oshMainFrame, text="Update", variable=newOsh, value="Update")
+    updateOshRbtn = ttk.Radiobutton(oshMainFrame, text="Update", variable=oshSelectedRbtn, value="Update")
     updateOshRbtn.grid(column=2, row=4, sticky="nsew")
 
     #TEXT ENTRY for multi-line texts
     #ENTRY BOXES
-    engWordIdEbx = ttk.Entry(oshMainFrame)
-    engWordIdEbx.grid(column=1, row=1, sticky="nsew", pady=2)
+    global newOshEbx
+    global engWordEbx
+    global oshWordIdEbx
+    engWordEbx = ttk.Entry(oshMainFrame)
+    engWordEbx.grid(column=1, row=1, sticky="nsew", pady=2)
     newOshEbx = ttk.Entry(oshMainFrame)
     newOshEbx.grid(column=1, row=3, sticky="nsew", pady=2)
     oshWordIdEbx = ttk.Entry(oshMainFrame)
