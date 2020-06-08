@@ -403,20 +403,52 @@ def open_definition_window():
     defWindow.rowconfigure(0, weight=1)
 
     #VARIABLES
-    #Variables for English and Oshindonga wod IDs
+    #Variables for English and Oshindonga word IDs and other labels
     engIdDef = tk.StringVar()
-    engIdDef.set(str(1))
+    engIdDef.set("")
     oshIdDef = tk.StringVar()
-    oshIdDef.set(str(2))
+    oshIdDef.set("")
+    wordToDefine = tk.StringVar()
+    wordToDefine.set("No word is selected fo definition")
     #Variables for the radiobuttons
-    newDef = tk.StringVar()
-    newDef.set("New")
-    updateDef = tk.StringVar()
-    #Variables for the radiobuttons
-    nounDef = tk.StringVar()
-    verbDef = tk.StringVar()
-    adverbDef = tk.StringVar()
-    adjectiveDef = tk.StringVar()
+    newOrUpdateDef = tk.StringVar()
+    partsOfSpeech = tk.StringVar()
+    
+
+    def search_word_to_define(word=""): #Returns english and oshidonga ids and pass them to the respective labels' textvariables, also displays that the word was found the database, otherewise Word to found.
+        word = oshWordDefEbx.get().lower()
+        with conn:
+            c.execute("SELECT english_id, id FROM oshindonga WHERE word=(?)", (word,))
+            result = c.fetchone()
+            print("Result: ", result)
+            if result == None:
+                wordToDefine.set("Word not found")
+                engIdDef.set("")
+                oshIdDef.set("")
+                return 
+            else:
+                engIdDef.set(result[0])
+                oshIdDef.set(result[1])
+                wordFound = "The word "'"{0}"'" was found in the database. Continue defining it below.".format(word)
+                wordToDefine.set(wordFound)
+                return    
+
+    def select_definition_category():
+        if newOrUpdateDef == "New":
+            if partsOfSpeech == "Noun":
+                add_noun_definition(engId=engIdDef, oshId=oshIdDef, engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
+            elif partsOfSpeech == "Verb":
+                add_verb_definition(engId=engIdDef, oshId=oshIdDef, engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
+            else:
+                return messagebox.showerror(title="Part of speech error", message="No part of speech is selected. Select part of speech of your definition and try again.")
+        elif newOrUpdateDef == "Update":
+            if partsOfSpeech == "Noun":
+                add_noun_definition(engId=engIdDef, oshId=oshIdDef, engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
+            elif partsOfSpeech == "Verb":
+                add_verb_definition(engId=engIdDef, oshId=oshIdDef, engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
+            else:
+                return messagebox.showerror(title="Part of speech error", message="No part of speech is selected. Select part of speech of your definition and try again.")
+
 
     #FRAMES
     defMainFrame = ttk.Frame(defWindow, relief='raised', borderwidth=3)
@@ -467,11 +499,11 @@ def open_definition_window():
     defTitleLbl.grid(column=0, columnspan=5, row=0, padx=5, sticky="nsew")
     newUpdateDefLbl = ttk.Label(defTopFrame, text = "Choose New/Update:", background="white")
     newUpdateDefLbl.grid(column=0, row=1, padx=5, pady=3, sticky="nsew")
-    partOfSpeechLbl = ttk.Label(defTopFrame, text = "Choose part of speech:", background="white")
+    partOfSpeechLbl = ttk.Label(defTopFrame, text = "Choose part of speech of your definition:", background="white")
     partOfSpeechLbl.grid(column=0, row=2, padx=5, pady=3, sticky="nsew")
-    oshWordDefLbl = ttk.Label(defTopFrame, text = "Enter Oshindonga word:", background="white")
+    oshWordDefLbl = ttk.Label(defTopFrame, text = "Enter Oshindonga word to define:", background="white")
     oshWordDefLbl.grid(column=0, row=3, padx=5, pady=3, sticky="nsew")
-    wordInDatabaseLbl = ttk.Label(defTopFrame, text = "Word found in database. continue below:", anchor=tk.CENTER, background="white")
+    wordInDatabaseLbl = ttk.Label(defTopFrame, textvariable = wordToDefine, anchor=tk.CENTER, background="white")
     wordInDatabaseLbl.grid(column=0, columnspan=5, row=4, padx=5, sticky="nsew")
     #In middle frame
     engIdDefLbl = ttk.Label(defMidFrame, text = "English word ID", background="cyan")
@@ -494,7 +526,7 @@ def open_definition_window():
     displayOshIdLbl.grid(column=0, row=3, padx=5, sticky="nsew")
 
     #BUTTONS
-    searchDefBtn = ttk.Button(searchOshFrame, text = "Search in database")
+    searchDefBtn = ttk.Button(searchOshFrame, text = "Search", command=search_word_to_define)
     searchDefBtn.grid(column=1, row=0, padx=5, sticky="nsew")
 
     saveDefBtn = ttk.Button(defBottomFrame, text = "Save")
@@ -503,17 +535,17 @@ def open_definition_window():
     cancelDefBtn.grid(column=1, row=0, padx=5, sticky="nsew")
 
     #RADIOBUTTONS
-    newDefRbtn = ttk.Radiobutton(newUpdateFrame, text="New", variable=newDef, value="New")
+    newDefRbtn = ttk.Radiobutton(newUpdateFrame, text="New", variable=newOrUpdateDef, value="New")
     newDefRbtn.grid(column=0, row=0, sticky="nsew")
-    updateRbtn = ttk.Radiobutton(newUpdateFrame, text="Update", variable=updateDef, value="Update")
+    updateRbtn = ttk.Radiobutton(newUpdateFrame, text="Update", variable=newOrUpdateDef, value="Update")
     updateRbtn.grid(column=1, row=0, sticky="nsew")
-    nounRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Noun", variable=nounDef, value="Noun")
+    nounRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Noun", variable=partsOfSpeech, value="Noun")
     nounRbtn.grid(column=0, row=0, sticky="nsew")
-    verbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Verb", variable=verbDef, value="Verb")
+    verbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Verb", variable=partsOfSpeech, value="Verb")
     verbRbtn.grid(column=1, row=0, sticky="nsew")
-    adverbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adverb", variable=adverbDef, value="Adverb")
+    adverbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adverb", variable=partsOfSpeech, value="Adverb")
     adverbRbtn.grid(column=2, row=0, sticky="nsew")
-    adjectiveRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adjective", variable=adjectiveDef, value="Adjective")
+    adjectiveRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adjective", variable=partsOfSpeech, value="Adjective")
     adjectiveRbtn.grid(column=3, row=0, sticky="nsew")
 
     #TEXT ENTRY for multi-line texts
