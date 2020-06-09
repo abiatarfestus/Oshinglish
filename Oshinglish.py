@@ -103,10 +103,28 @@ def add_oshindonga_word(word="", engId=0): #Remove arguments if not necessary
 
 #Add a noun definiton
 def add_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
-    with conn:
-        c.execute("""INSERT INTO nouns (english_id, oshindonga_id, english_definition,
-                    english_example, oshindonga_definition, oshindonga_example) 
-                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
+    global engIdDef #To allow resetting of these labels and text boxes after successful submittion of definitions
+    global oshIdDef
+    global engDefTxt
+    global engExampleTxt
+    global oshDefTxt
+    global oshExampleTxt
+    try:
+        with conn:
+            c.execute("""INSERT INTO nouns (english_id, oshindonga_id, english_definition,
+                        english_example, oshindonga_definition, oshindonga_example) 
+                        VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
+            engIdDef.set("")
+            oshIdDef.set("")
+            engDefTxt.delete("1.0", tk.END)
+            engExampleTxt.delete("1.0", tk.END)
+            oshDefTxt.delete("1.0", tk.END)
+            oshExampleTxt.delete("1.0", tk.END)
+    except Exception as error:
+        messagebox.showerror(title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
+             If the error persists, please report it to the developer.".format(error))
+    else:
+        messagebox.showinfo(title="Definition added", message= "Definition(s) successfully added to the dictionary.")
 
 #Add a verb definition
 def add_verb_definition(engId, oshId, engDef, engEx, oshDef, oshEx):
@@ -404,6 +422,13 @@ def open_definition_window():
 
     #VARIABLES
     #Variables for English and Oshindonga word IDs and other labels
+    global engIdDef
+    global oshIdDef
+    global engDefTxt
+    global engExampleTxt
+    global oshDefTxt
+    global oshExampleTxt
+
     engIdDef = tk.StringVar()
     engIdDef.set("")
     oshIdDef = tk.StringVar()
@@ -435,17 +460,19 @@ def open_definition_window():
 
     def select_definition_category():
         if newOrUpdateDef == "New":
+            messagebox.askyesno(title="Confirm part of speech", message="You're about to add a {0} definition of '{1}'.\
+             Click yes to continue or no to correct the part of speech.".format(partsOfSpeech, oshWordDefEbx.get()))
             if partsOfSpeech == "Noun":
-                add_noun_definition(engId=engIdDef, oshId=oshIdDef, engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
+                add_noun_definition(engId=int(engIdDef), oshId=int(oshIdDef), engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
             elif partsOfSpeech == "Verb":
-                add_verb_definition(engId=engIdDef, oshId=oshIdDef, engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
+                add_verb_definition(engId=int(engIdDef), oshId=int(oshIdDef), engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
             else:
                 return messagebox.showerror(title="Part of speech error", message="No part of speech is selected. Select part of speech of your definition and try again.")
         elif newOrUpdateDef == "Update":
             if partsOfSpeech == "Noun":
-                add_noun_definition(engId=engIdDef, oshId=oshIdDef, engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
+                updat_noun_definition(engId=int(engIdDef), oshId=int(oshIdDef), engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
             elif partsOfSpeech == "Verb":
-                add_verb_definition(engId=engIdDef, oshId=oshIdDef, engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
+                update_verb_definition(engId=int(engIdDef), oshId=int(oshIdDef), engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
             else:
                 return messagebox.showerror(title="Part of speech error", message="No part of speech is selected. Select part of speech of your definition and try again.")
 
