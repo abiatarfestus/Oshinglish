@@ -36,7 +36,7 @@ c.executescript("""PRAGMA foreign_keys = ON;
 
             CREATE TABLE IF NOT EXISTS nouns (
             id INTEGER PRIMARY KEY,
-            english_id TEXT NOT NULL,
+            english_id INTEGER NOT NULL,
             oshindonga_id INTEGER NOT NULL,
             english_definition TEXT NOT NULL,
             english_example TEXT NOT NULL,
@@ -53,7 +53,7 @@ c.executescript("""PRAGMA foreign_keys = ON;
 
             CREATE TABLE IF NOT EXISTS verbs (
             id INTEGER PRIMARY KEY,
-            english_id TEXT NOT NULL,
+            english_id INTEGER NOT NULL,
             oshindonga_id INTEGER NOT NULL,
             english_definition TEXT NOT NULL,
             english_example TEXT NOT NULL,
@@ -78,7 +78,7 @@ def add_english_word(word=""):
         with conn:
             c.execute("INSERT INTO english (word) VALUES (?)", (word,))
         newEngEbx.delete(0, tk.END)
-    except sqlite3.IntegrityError as error:
+    except sqlite3.IntegrityError:
         messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
     else:
         messagebox.showinfo(title="Word added", message= "The word '" +word+ "' was successfully added to the dictionary.")
@@ -96,42 +96,65 @@ def add_oshindonga_word(word="", engId=0): #Remove arguments if not necessary
         engWordEbx.delete(0, tk.END)
         global displayEngId3
         displayEngId3 = ""      #Resets the the variable of English word ID to avoid inadvertent linking of Oshindonga words to wrong English words
-    except sqlite3.IntegrityError as error:
+    except sqlite3.IntegrityError:
         messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
     else:
         messagebox.showinfo(title="Word added", message= "The word '" +word+ "' was successfully added to the dictionary.")
 
-#Add a noun definiton
-def add_noun_definition(engId, oshId, engdef, engEx, oshDef, oshEx):
+#Add a noun (any) definiton
+def add_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx):
     global engIdDef #To allow resetting of these labels and text boxes after successful submittion of definitions
     global oshIdDef
     global engDefTxt
     global engExampleTxt
     global oshDefTxt
     global oshExampleTxt
+    global newOrUpdateDef
+    global partsOfSpeech
     try:
         with conn:
-            c.execute("""INSERT INTO nouns (english_id, oshindonga_id, english_definition,
+            defquery = """INSERT INTO {0} (english_id, oshindonga_id, english_definition,
                         english_example, oshindonga_definition, oshindonga_example) 
-                        VALUES (?,?,?,?,?,?)""", (engId, oshId, engdef, engEx, oshDef, oshEx))
+                        VALUES (?,?,?,?,?,?)""".format(table)
+            c.execute(defquery, (engId, oshId, engDef, engEx, oshDef, oshEx))
             engIdDef.set("")
             oshIdDef.set("")
+            newOrUpdateDef.set("")
+            partsOfSpeech.set("")
             engDefTxt.delete("1.0", tk.END)
             engExampleTxt.delete("1.0", tk.END)
             oshDefTxt.delete("1.0", tk.END)
             oshExampleTxt.delete("1.0", tk.END)
     except Exception as error:
         messagebox.showerror(title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
-             If the error persists, please report it to the developer.".format(error))
+             If the error persists, please report it to the developer.".format(error)) #Search for likely exception
     else:
         messagebox.showinfo(title="Definition added", message= "Definition(s) successfully added to the dictionary.")
 
 #Add a verb definition
-def add_verb_definition(engId, oshId, engDef, engEx, oshDef, oshEx):
-    with conn:
-        c.execute("""INSERT INTO verbs (english_id, oshindonga_id, english_definition,
-                    english_example, oshindonga_definition, oshindonga_example) 
-                    VALUES (?,?,?,?,?,?)""", (engId, oshId, engDef, engEx, oshDef, oshEx))
+# def add_verb_definition(engId, oshId, engDef, engEx, oshDef, oshEx):
+#     global engIdDef #To allow resetting of these labels and text boxes after successful submittion of definitions
+#     global oshIdDef
+#     global engDefTxt
+#     global engExampleTxt
+#     global oshDefTxt
+#     global oshExampleTxt
+#     try:
+#         with conn:
+#             c.execute("""INSERT INTO verbs (english_id, oshindonga_id, english_definition,
+#                         english_example, oshindonga_definition, oshindonga_example) 
+#                         VALUES (?,?,?,?,?,?)""", (engId, oshId, engDef, engEx, oshDef, oshEx))
+#             engIdDef.set("")
+#             oshIdDef.set("")
+#             engDefTxt.delete("1.0", tk.END)
+#             engExampleTxt.delete("1.0", tk.END)
+#             oshDefTxt.delete("1.0", tk.END)
+#             oshExampleTxt.delete("1.0", tk.END)
+#     except Exception as error:
+#         messagebox.showerror(title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
+#              If the error persists, please report it to the developer.".format(error)) #Search for likely exception
+#     else:
+#         messagebox.showinfo(title="Definition added", message= "Definition(s) successfully added to the dictionary.")
 
 #Get a definition
 def find_english_word(word): #Returns input value/argument for find_definition if word found
@@ -200,12 +223,12 @@ def update_english_word(word="", id=0):
     try: 
         id = int(updateEngEbx.get()) #Gets the value from the update entrybox, converts it to int (to match id data type)
     except ValueError:
-         messagebox.showerror(title="English ID error", message= "No word ID or invalid ID was entered.\nEnter valid ID and try again.")
+         messagebox.showerror(title="English ID error", message= "No word ID or invalid ID was entered.\nEnter a valid ID and try again.")
     else:
         with conn:
-            c.execute("SELECT word FROM english WHERE id=(?)", (updateEngEbx.get(), id))
+            c.execute("SELECT word FROM english WHERE id=(?)", (id,))
             result = c.fetchone()
-            #print("Result: ", result)
+            print("Result: ", result)
             if result == None:
                 return messagebox.showerror(title="ID not found", message= "The ID entered was not found in the database.\nEnter a valid ID and try again.")
             else:
@@ -214,7 +237,7 @@ def update_english_word(word="", id=0):
                         c.execute("UPDATE english SET word = (?) WHERE id = (?)", (word, id))
                     newEngEbx.delete(0, tk.END)
                     updateEngEbx.delete(0, tk.END)
-                except sqlite3.IntegrityError as error:
+                except sqlite3.IntegrityError:
                     messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
                 else:
                     messagebox.showinfo(title="Word updated", message= "The word was successfully updated.")
@@ -240,10 +263,29 @@ def update_oshindonga_word(word="", id=0):
                 messagebox.showinfo(title="Word updated", message= "Word was successfully updated.")
 
 def update_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx, id):
-    with conn:
-        uquery = """UPDATE {} SET english_id = (?), oshindonga_id = (?), english_definition = (?), 
-        english_example = (?), oshindonga_definition = (?), oshindonga_example = (?) WHERE id = (?)""".format(table)
-        c.execute(uquery, (engId, oshId, engDef, engEx, oshDef, oshEx, id))
+    global engIdDef #To allow resetting of these labels and text boxes after successful submittion of definitions
+    global oshIdDef
+    global engDefTxt
+    global engExampleTxt
+    global oshDefTxt
+    global oshExampleTxt
+    try:
+        with conn:
+            uquery = """UPDATE {} SET english_id = (?), oshindonga_id = (?), english_definition = (?), 
+            english_example = (?), oshindonga_definition = (?), oshindonga_example = (?) WHERE id = (?)""".format(table)
+            c.execute(uquery, (engId, oshId, engDef, engEx, oshDef, oshEx, id))
+            engIdDef.set("")
+            oshIdDef.set("")
+            engDefTxt.delete("1.0", tk.END)
+            engExampleTxt.delete("1.0", tk.END)
+            oshDefTxt.delete("1.0", tk.END)
+            oshExampleTxt.delete("1.0", tk.END)
+    except Exception as error:
+        messagebox.showerror(title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
+             If the error persists, please report it to the developer.".format(error)) #Search for likely exception
+    else:
+        messagebox.showinfo(title="Definition updated", message= "Definition(s) successfully updated to the dictionary.")
+
 
 #conn.close()
 
@@ -290,7 +332,7 @@ def open_english_window():
     newEngLbl.grid(column=0, row=1, padx=5, pady=5, sticky="nsew")
     newUpdateEngLbl = ttk.Label(engMainFrame, text = "Select New/Update:", background="white")
     newUpdateEngLbl.grid(column=0, row=2, padx=5, pady=5, sticky="nsew")
-    newEngIdLbl = ttk.Label(engMainFrame, text = "ID of word to be update:", background="white")
+    newEngIdLbl = ttk.Label(engMainFrame, text = "ID of word to be updated:", background="white")
     newEngIdLbl.grid(column=0, row=3, padx=5, pady=5, sticky="nsew")
     #newEngDisplayLbl = ttk.Label(engMainFrame, textvariable=newEngDisplay, background="white")
     #newEngDisplayLbl.grid(column=0, columnspan=3, row=4, padx=5, pady=5, sticky="nsew")
@@ -428,55 +470,117 @@ def open_definition_window():
     global engExampleTxt
     global oshDefTxt
     global oshExampleTxt
+    global newOrUpdateDef
+    global partsOfSpeech
 
     engIdDef = tk.StringVar()
     engIdDef.set("")
     oshIdDef = tk.StringVar()
     oshIdDef.set("")
     wordToDefine = tk.StringVar()
-    wordToDefine.set("No word is selected fo definition")
+    wordToDefine.set("No word is selected for definition")
     #Variables for the radiobuttons
     newOrUpdateDef = tk.StringVar()
+    newOrUpdateDef.set("")
     partsOfSpeech = tk.StringVar()
+    partsOfSpeech.set("")
     
 
-    def search_word_to_define(word=""): #Returns english and oshidonga ids and pass them to the respective labels' textvariables, also displays that the word was found the database, otherewise Word to found.
-        word = oshWordDefEbx.get().lower()
-        with conn:
-            c.execute("SELECT english_id, id FROM oshindonga WHERE word=(?)", (word,))
-            result = c.fetchone()
-            print("Result: ", result)
-            if result == None:
-                wordToDefine.set("Word not found")
-                engIdDef.set("")
-                oshIdDef.set("")
-                return 
-            else:
-                engIdDef.set(result[0])
-                oshIdDef.set(result[1])
-                wordFound = "The word "'"{0}"'" was found in the database. Continue defining it below.".format(word)
-                wordToDefine.set(wordFound)
-                return    
+    # def search_word_to_define(word=""): #Returns english and oshidonga ids and pass them to the respective labels' textvariables, also displays that the word was found the database, otherewise Word to found.
+    #     word = oshWordDefEbx.get().lower()
+    #     with conn:
+    #         c.execute("SELECT english_id, id FROM oshindonga WHERE word=(?)", (word,))
+    #         result = c.fetchone()
+    #         print("Result: ", result)
+    #         if result == None:
+    #             wordToDefine.set("Word not found")
+    #             engIdDef.set("")
+    #             oshIdDef.set("")
+    #             return 
+    #         else:
+    #             engIdDef.set(result[0])
+    #             oshIdDef.set(result[1])
+    #             wordFound = "The word "'"{0}"'" was found in the database. Continue defining it below.".format(word)
+    #             wordToDefine.set(wordFound)
+    #             return
 
-    def select_definition_category():
-        if newOrUpdateDef == "New":
-            messagebox.askyesno(title="Confirm part of speech", message="You're about to add a {0} definition of '{1}'.\
-             Click yes to continue or no to correct the part of speech.".format(partsOfSpeech, oshWordDefEbx.get()))
-            if partsOfSpeech == "Noun":
-                add_noun_definition(engId=int(engIdDef), oshId=int(oshIdDef), engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
-            elif partsOfSpeech == "Verb":
-                add_verb_definition(engId=int(engIdDef), oshId=int(oshIdDef), engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
+    def search_word_or_definition(searchInput=""): #Returns english and oshidonga ids and pass them to the respective labels' textvariables, also displays that the word was found the database, otherewise Word to found.
+        #global newOrUpdateDef                       #If Update is selected, function returns definition atributes and populate textboxes & labels
+        #global partsOfSpeech
+        table = partsOfSpeech.get()                   
+        global definedWord
+        definedWord = "" #Word returned by the definition ID when definition (Update) is searched
+        defFound = "Definition(s) of "'"{0}"'" was found populated in the fields below. Edit the definition(s) and click save.".format(definedWord)
+        if newOrUpdateDef.get() == "update":
+            if partsOfSpeech.get() == "":
+                messagebox.showerror(title="Definition category error", message= "No part of speech is selected. Select the part of speech of the definition you're searching for.")
             else:
+                try:
+                    searchInput = int(oshWordDefEbx.get())
+                    with conn:
+                        searchDefQuery = "SELECT * FROM {0} WHERE id=(?)".format(table)
+                        c.execute(searchDefQuery, (searchInput,))
+                        result = c.fetchone()
+                        if result == None:
+                            wordToDefine.set("No definition found")
+                            engIdDef.set("")
+                            oshIdDef.set("")
+                            newOrUpdateDef.set("")
+                            partsOfSpeech.set("")
+                            engDefTxt.delete("1.0", tk.END)
+                            engExampleTxt.delete("1.0", tk.END)
+                            oshDefTxt.delete("1.0", tk.END)
+                            oshExampleTxt.delete("1.0", tk.END)
+                            return 
+                        else:
+                            definedWord = find_oshindonga_id(result[2]) #Returns the English word of the ID in the returnd definition (needs to be concatinated with Oshindonga)
+                            defFound = "Definition(s) of "'"{0}"'" found and populated in the fields below. Edit the definition(s) and click save.".format(definedWord)
+                            wordToDefine.set(defFound)
+                            engIdDef.set(result[1])  #0 represents the first tuple=first row/record in the list of tuples
+                            oshIdDef.set(result[2])  #1,2,3...represent elements=colums in the tuple
+                            #newOrUpdateDef.set(None)
+                            #partsOfSpeech.set(None)
+                            engDefTxt.insert(tk.END, result[3])
+                            engExampleTxt.insert(tk.END, result[4])
+                            oshDefTxt.insert(tk.END, result[5])
+                            oshExampleTxt.insert(tk.END, result[6])
+                            return    
+                except ValueError:
+                    messagebox.showerror(title="Definition ID error", message= "No definition ID or invalid ID was entered.\nEnter a valid ID and try again.")       
+        else: #Operation equals to new (or no option is selected:None)
+            searchInput = oshWordDefEbx.get().lower()
+            with conn:
+                c.execute("SELECT english_id, id FROM oshindonga WHERE word=(?)", (searchInput,))
+                result = c.fetchone()
+                if result == None:
+                    wordToDefine.set("Word not found")
+                    engIdDef.set("")
+                    oshIdDef.set("")
+                    return 
+                else:
+                    engIdDef.set(result[0])
+                    oshIdDef.set(result[1])
+                    wordFound = "The word "'"{0}"'" was found in the database. Continue defining it below.".format(searchInput)
+                    wordToDefine.set(wordFound)
+                    return
+        
+
+    def submit_definition():
+        if newOrUpdateDef.get() == None:
+            return messagebox.showerror(title="Operation unspecified", message="Please choose whether you're updating or adding a new definition.")
+        else:
+            if partsOfSpeech.get() == None:
                 return messagebox.showerror(title="Part of speech error", message="No part of speech is selected. Select part of speech of your definition and try again.")
-        elif newOrUpdateDef == "Update":
-            if partsOfSpeech == "Noun":
-                updat_noun_definition(engId=int(engIdDef), oshId=int(oshIdDef), engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
-            elif partsOfSpeech == "Verb":
-                update_verb_definition(engId=int(engIdDef), oshId=int(oshIdDef), engdef=engDefTxt.get(), engEx=engExampleTxt.get(), oshDef=oshDefTxt.get(), oshEx=oshExampleTxt.get())
             else:
-                return messagebox.showerror(title="Part of speech error", message="No part of speech is selected. Select part of speech of your definition and try again.")
-
-
+                if newOrUpdateDef.get() == "new":
+                    messagebox.askyesno(title="Confirm operation", message="You're about to add a {0} definition of '{1}' to {2} category.\
+                        Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord, partsOfSpeech.get()))
+                    add_definition(table=partsOfSpeech.get(), engId=int(engIdDef), oshId=int(oshIdDef), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END))
+                else: #Operation is update
+                    messagebox.askyesno(title="Confirm operation", message="You're about to {0} the definition of '{1}' in the {2} category.\
+                    Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), oshWordDefEbx.get(), partsOfSpeech.get()))
+                    update_definition(table=partsOfSpeech.get(), engId=int(engIdDef), oshId=int(oshIdDef), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END), id=id)
+            
     #FRAMES
     defMainFrame = ttk.Frame(defWindow, relief='raised', borderwidth=3)
     defMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
@@ -528,7 +632,7 @@ def open_definition_window():
     newUpdateDefLbl.grid(column=0, row=1, padx=5, pady=3, sticky="nsew")
     partOfSpeechLbl = ttk.Label(defTopFrame, text = "Choose part of speech of your definition:", background="white")
     partOfSpeechLbl.grid(column=0, row=2, padx=5, pady=3, sticky="nsew")
-    oshWordDefLbl = ttk.Label(defTopFrame, text = "Enter Oshindonga word to define:", background="white")
+    oshWordDefLbl = ttk.Label(defTopFrame, text = "Enter Oshindonga word to define or definition ID to modify:", background="white")
     oshWordDefLbl.grid(column=0, row=3, padx=5, pady=3, sticky="nsew")
     wordInDatabaseLbl = ttk.Label(defTopFrame, textvariable = wordToDefine, anchor=tk.CENTER, background="white")
     wordInDatabaseLbl.grid(column=0, columnspan=5, row=4, padx=5, sticky="nsew")
@@ -553,26 +657,26 @@ def open_definition_window():
     displayOshIdLbl.grid(column=0, row=3, padx=5, sticky="nsew")
 
     #BUTTONS
-    searchDefBtn = ttk.Button(searchOshFrame, text = "Search", command=search_word_to_define)
+    searchDefBtn = ttk.Button(searchOshFrame, text = "Search", command=search_word_or_definition)
     searchDefBtn.grid(column=1, row=0, padx=5, sticky="nsew")
 
-    saveDefBtn = ttk.Button(defBottomFrame, text = "Save")
+    saveDefBtn = ttk.Button(defBottomFrame, text = "Save", command=submit_definition)
     saveDefBtn.grid(column=0, row=0, padx=5, sticky="nsew")
     cancelDefBtn = ttk.Button(defBottomFrame, text = "Cancel")
     cancelDefBtn.grid(column=1, row=0, padx=5, sticky="nsew")
 
     #RADIOBUTTONS
-    newDefRbtn = ttk.Radiobutton(newUpdateFrame, text="New", variable=newOrUpdateDef, value="New")
+    newDefRbtn = ttk.Radiobutton(newUpdateFrame, text="New", variable=newOrUpdateDef, value="new")
     newDefRbtn.grid(column=0, row=0, sticky="nsew")
-    updateRbtn = ttk.Radiobutton(newUpdateFrame, text="Update", variable=newOrUpdateDef, value="Update")
+    updateRbtn = ttk.Radiobutton(newUpdateFrame, text="Update", variable=newOrUpdateDef, value="update")
     updateRbtn.grid(column=1, row=0, sticky="nsew")
-    nounRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Noun", variable=partsOfSpeech, value="Noun")
+    nounRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Noun", variable=partsOfSpeech, value="nouns") #Values named to correspond with database table names 
     nounRbtn.grid(column=0, row=0, sticky="nsew")
-    verbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Verb", variable=partsOfSpeech, value="Verb")
+    verbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Verb", variable=partsOfSpeech, value="verbs")
     verbRbtn.grid(column=1, row=0, sticky="nsew")
-    adverbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adverb", variable=partsOfSpeech, value="Adverb")
+    adverbRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adverb", variable=partsOfSpeech, value="adverbs")
     adverbRbtn.grid(column=2, row=0, sticky="nsew")
-    adjectiveRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adjective", variable=partsOfSpeech, value="Adjective")
+    adjectiveRbtn = ttk.Radiobutton(partsOfSpeechFrame, text="Adjective", variable=partsOfSpeech, value="adjectives")
     adjectiveRbtn.grid(column=3, row=0, sticky="nsew")
 
     #TEXT ENTRY for multi-line texts
