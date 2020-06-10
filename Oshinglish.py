@@ -73,7 +73,7 @@ c.executescript("""PRAGMA foreign_keys = ON;
 #Add an English word
 def add_english_word(word=""):
     #print("Entered add english word function")
-    word = newEngEbx.get().lower()
+    word = newEngEbx.get().strip().lower()
     try:
         with conn:
             c.execute("INSERT INTO english (word) VALUES (?)", (word,))
@@ -87,8 +87,8 @@ def add_english_word(word=""):
 
 #Add Oshindonga word
 def add_oshindonga_word(word="", engId=0): #Remove arguments if not necessary
-    word = newOshEbx.get().lower()
-    engId = find_english_word(engWordEbx.get().lower())
+    word = newOshEbx.get().strip().lower()
+    engId = find_english_word(engWordEbx.get().strip().lower())
     try:
         with conn:
             c.execute("INSERT INTO oshindonga (word, english_id) VALUES (?,?)", (word, engId))
@@ -111,6 +111,8 @@ def add_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx):
     global oshExampleTxt
     global newOrUpdateDef
     global partsOfSpeech
+    global oshWordDefEbx
+    global wordToDefine
     try:
         with conn:
             defquery = """INSERT INTO {0} (english_id, oshindonga_id, english_definition,
@@ -121,10 +123,12 @@ def add_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx):
             oshIdDef.set("")
             newOrUpdateDef.set("")
             partsOfSpeech.set("")
+            wordToDefine.set("No word is selected for definition")
             engDefTxt.delete("1.0", tk.END)
             engExampleTxt.delete("1.0", tk.END)
             oshDefTxt.delete("1.0", tk.END)
             oshExampleTxt.delete("1.0", tk.END)
+            oshWordDefEbx.delete(0, tk.END)
     except Exception as error:
         messagebox.showerror(title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
              If the error persists, please report it to the developer.".format(error)) #Search for likely exception
@@ -184,6 +188,15 @@ def find_oshindonga_id(id): #Returns input value/argument for find_definition if
         else:
             return result[0]    #Returns Oshidonga word, which should be passed to search_oshindonga_id()
 
+def find_english_id(id): #Returns input value/argument for find_definition if word found
+    with conn:
+        c.execute("SELECT word FROM english WHERE id=(?)", (id,))
+        result = c.fetchone()
+        if result == None:
+            return "Word not found"
+        else:
+            return result[0]    #Returns Oshidonga word, which should be passed to search_english_id()
+
 #Search part of speech tables for definitions
 def find_definition(wordID):
     with conn:
@@ -219,9 +232,9 @@ def remove_definition(table, id):
 
 #Update/modify words and definitions
 def update_english_word(word="", id=0):
-    word = newEngEbx.get().lower()
+    word = newEngEbx.get().strip().lower()
     try: 
-        id = int(updateEngEbx.get()) #Gets the value from the update entrybox, converts it to int (to match id data type)
+        id = int(updateEngEbx.get().strip()) #Gets the value from the update entrybox, converts it to int (to match id data type)
     except ValueError:
          messagebox.showerror(title="English ID error", message= "No word ID or invalid ID was entered.\nEnter a valid ID and try again.")
     else:
@@ -244,9 +257,9 @@ def update_english_word(word="", id=0):
 
 
 def update_oshindonga_word(word="", id=0):
-    word = newOshEbx.get().lower()
+    word = newOshEbx.get().strip().lower()
     try: 
-        id = int(oshWordIdEbx.get()) #Gets the value from the update entrybox, converts it to int (to match id data type)
+        id = int(oshWordIdEbx.get().strip()) #Gets the value from the update entrybox, converts it to int (to match id data type)
     except ValueError:
          messagebox.showerror(title="Oshindonga ID error 1", message= "No word ID or invalid ID was entered. Enter valid ID, click search and try again if the word you wish to modify appears below.")
     else:
@@ -269,6 +282,10 @@ def update_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx, id):
     global engExampleTxt
     global oshDefTxt
     global oshExampleTxt
+    global newOrUpdateDef
+    global partsOfSpeech
+    global oshWordDefEbx
+    global wordToDefine
     try:
         with conn:
             uquery = """UPDATE {} SET english_id = (?), oshindonga_id = (?), english_definition = (?), 
@@ -276,10 +293,14 @@ def update_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx, id):
             c.execute(uquery, (engId, oshId, engDef, engEx, oshDef, oshEx, id))
             engIdDef.set("")
             oshIdDef.set("")
+            newOrUpdateDef.set("")
+            partsOfSpeech.set("")
+            wordToDefine.set("No word is selected for definition")
             engDefTxt.delete("1.0", tk.END)
             engExampleTxt.delete("1.0", tk.END)
             oshDefTxt.delete("1.0", tk.END)
             oshExampleTxt.delete("1.0", tk.END)
+            oshWordDefEbx.delete(0, tk.END)
     except Exception as error:
         messagebox.showerror(title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
              If the error persists, please report it to the developer.".format(error)) #Search for likely exception
@@ -310,11 +331,11 @@ def open_english_window():
             update_english_word() #Calls the update_english_word function
         else:
             return messagebox.showerror(title="Operation unknown", message="Operation not specified.\nSelect New or Update and search again.")
-        engSelectedRbtn.set(None)
+        engSelectedRbtn.set("")
         return
 
     def search_if_english_word_exist(word=""):
-        word = newEngEbx.get()
+        word = newEngEbx.get().strip()
         searchResult = find_english_word(word)
         updateEngEbx.delete(0, tk.END) #Clears the textbox before inserting the returned ID/result
         updateEngEbx.insert(tk.INSERT, searchResult)
@@ -326,7 +347,7 @@ def open_english_window():
     engMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
 
     #LABELS
-    newEngTitleLbl = ttk.Label(engMainFrame, text = "Add or update an English word", anchor=tk.CENTER, background="white")
+    newEngTitleLbl = ttk.Label(engMainFrame, text = "Add or update an English word", anchor=tk.CENTER, background="SteelBlue3")
     newEngTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
     newEngLbl = ttk.Label(engMainFrame, text = "Enter new word:", background="white")
     newEngLbl.grid(column=0, row=1, padx=5, pady=5, sticky="nsew")
@@ -375,7 +396,7 @@ def open_oshindonga_window():
     displayEngId.set(displayEngId1 + '"' + displayEngId2 + '" is: ' + str(displayEngId3))
 
     def search_english_word(word=""):
-        word = engWordEbx.get().lower() # Remember to search for other places to add .lower()
+        word = engWordEbx.get().strip().lower() # Remember to search for other places to add .lower()
         displayEngId2 = word
         global displayEngId3
         displayEngId3 = find_english_word(word) #Returns the English word ID and assign it to this variable
@@ -384,7 +405,7 @@ def open_oshindonga_window():
 
     def search_oshindonga_id(id=0): #Find oshindonga word to be update by ID
         try:
-            id = int(oshWordIdEbx.get()) #Gets the value from the update entrybox, converts it to int (to match id data type)
+            id = int(oshWordIdEbx.get().strip()) #Gets the value from the update entrybox, converts it to int (to match id data type)
         except ValueError:
             messagebox.showerror(title="Oshindonga ID error 3", message= "No word ID or invalid ID was entered. Enter valid ID, click search and try again if the word you wish to modify appears below.")
         else:
@@ -405,8 +426,8 @@ def open_oshindonga_window():
         elif newOrUpdateOsh == "Update":
             update_oshindonga_word() #Calls the update_oshindonga_word function
         else:
-            return messagebox.showerror(title="Operation unknown", message="Operation not specified.\nSelect New or Update and search again.")
-        oshSelectedRbtn.set(None)
+            return messagebox.showerror(title="Operation not specified", message="Operation not specified.\nSelect New or Update and try again.")
+        oshSelectedRbtn.set("")
         return
 
     #FRAMES
@@ -414,7 +435,7 @@ def open_oshindonga_window():
     oshMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
 
     #LABELS
-    newOshTitleLbl = ttk.Label(oshMainFrame, text = "Add or update an Oshindonga word", anchor=tk.CENTER, background="white")
+    newOshTitleLbl = ttk.Label(oshMainFrame, text = "Add or update an Oshindonga word", anchor=tk.CENTER, background="SteelBlue3")
     newOshTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
     engWordIdLbl = ttk.Label(oshMainFrame, text = "Enter the corresponding English word:", background="white")
     engWordIdLbl.grid(column=0, row=1, padx=5, pady=5, sticky="nsew")
@@ -472,6 +493,8 @@ def open_definition_window():
     global oshExampleTxt
     global newOrUpdateDef
     global partsOfSpeech
+    global oshWordDefEbx
+    global wordToDefine
 
     engIdDef = tk.StringVar()
     engIdDef.set("")
@@ -508,15 +531,17 @@ def open_definition_window():
         #global newOrUpdateDef                       #If Update is selected, function returns definition atributes and populate textboxes & labels
         #global partsOfSpeech
         table = partsOfSpeech.get()                   
-        global definedWord
-        definedWord = "" #Word returned by the definition ID when definition (Update) is searched
-        defFound = "Definition(s) of "'"{0}"'" was found populated in the fields below. Edit the definition(s) and click save.".format(definedWord)
+        global definedWord1
+        global definedWord2
+        definedWord1 = "" #Word returned by the definition ID when definition (Update) is searched
+        definedWord2 = ""
+        #defFound = "Definitions of "'"{0}"'" and "'"{1}"'" were found populated in the fields below. Edit the definitions and click save.".format(definedWord1, definedWord2)
         if newOrUpdateDef.get() == "update":
             if partsOfSpeech.get() == "":
                 messagebox.showerror(title="Definition category error", message= "No part of speech is selected. Select the part of speech of the definition you're searching for.")
             else:
                 try:
-                    searchInput = int(oshWordDefEbx.get())
+                    searchInput = int(oshWordDefEbx.get().strip())
                     with conn:
                         searchDefQuery = "SELECT * FROM {0} WHERE id=(?)".format(table)
                         c.execute(searchDefQuery, (searchInput,))
@@ -533,11 +558,13 @@ def open_definition_window():
                             oshExampleTxt.delete("1.0", tk.END)
                             return 
                         else:
-                            definedWord = find_oshindonga_id(result[2]) #Returns the English word of the ID in the returnd definition (needs to be concatinated with Oshindonga)
-                            defFound = "Definition(s) of "'"{0}"'" found and populated in the fields below. Edit the definition(s) and click save.".format(definedWord)
+                            definedWord1 = find_english_id(result[1])   #Returns the English word of the ID in the returnd definition
+                            #print("defined1: ", definedWord2)
+                            definedWord2 = find_oshindonga_id(result[2]) #Returns the Oshindonga word of the ID in the returnd definition
+                            defFound = "Definitions of "'"{0}"'" and "'"{1}"'" were found and populated in the fields below. Edit the definitions and click save.".format(definedWord1, definedWord2)
                             wordToDefine.set(defFound)
-                            engIdDef.set(result[1])  #0 represents the first tuple=first row/record in the list of tuples
-                            oshIdDef.set(result[2])  #1,2,3...represent elements=colums in the tuple
+                            engIdDef.set(result[1])  #1 represents the 2nd item=english_id in the returned tuple (the 1st=0 item is the definition ID). fetchone returns a tuple=one record/row, fetchall returns a list of tuples
+                            oshIdDef.set(result[2])  #2,3...represent oshindonga_id, english_def...
                             #newOrUpdateDef.set(None)
                             #partsOfSpeech.set(None)
                             engDefTxt.insert(tk.END, result[3])
@@ -548,7 +575,7 @@ def open_definition_window():
                 except ValueError:
                     messagebox.showerror(title="Definition ID error", message= "No definition ID or invalid ID was entered.\nEnter a valid ID and try again.")       
         else: #Operation equals to new (or no option is selected:None)
-            searchInput = oshWordDefEbx.get().lower()
+            searchInput = oshWordDefEbx.get().strip().lower()
             with conn:
                 c.execute("SELECT english_id, id FROM oshindonga WHERE word=(?)", (searchInput,))
                 result = c.fetchone()
@@ -566,20 +593,20 @@ def open_definition_window():
         
 
     def submit_definition():
-        if newOrUpdateDef.get() == None:
+        if newOrUpdateDef.get() == "":
             return messagebox.showerror(title="Operation unspecified", message="Please choose whether you're updating or adding a new definition.")
         else:
-            if partsOfSpeech.get() == None:
+            if partsOfSpeech.get() == "":
                 return messagebox.showerror(title="Part of speech error", message="No part of speech is selected. Select part of speech of your definition and try again.")
             else:
                 if newOrUpdateDef.get() == "new":
-                    messagebox.askyesno(title="Confirm operation", message="You're about to add a {0} definition of '{1}' to {2} category.\
-                        Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord, partsOfSpeech.get()))
-                    add_definition(table=partsOfSpeech.get(), engId=int(engIdDef), oshId=int(oshIdDef), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END))
+                    messagebox.askyesno(title="Confirm operation", message="You're about to add a {0} definition of '{1}' and '{2}' to {3} category.\n\
+                    Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord1, definedWord2, partsOfSpeech.get()))
+                    add_definition(table=partsOfSpeech.get(), engId=int(engIdDef.get()), oshId=int(oshIdDef.get()), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END))
                 else: #Operation is update
-                    messagebox.askyesno(title="Confirm operation", message="You're about to {0} the definition of '{1}' in the {2} category.\
-                    Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), oshWordDefEbx.get(), partsOfSpeech.get()))
-                    update_definition(table=partsOfSpeech.get(), engId=int(engIdDef), oshId=int(oshIdDef), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END), id=id)
+                    messagebox.askyesno(title="Confirm operation", message="You're about to {0} the definitions of '{1}' and '{2}' in the {3} category.\n\
+                    \nClick yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord1, definedWord2, partsOfSpeech.get()))
+                    update_definition(table=partsOfSpeech.get(), engId=int(engIdDef.get()), oshId=int(oshIdDef.get()), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END), id=int(oshWordDefEbx.get().strip()))
             
     #FRAMES
     defMainFrame = ttk.Frame(defWindow, relief='raised', borderwidth=3)
@@ -598,7 +625,7 @@ def open_definition_window():
     defMidFrame.grid(column=0, row=1, padx=5, pady=5, sticky='nesw')
     #Configuring column and row resizability
     defMidFrame.columnconfigure((0,1,2), weight=1)
-    defMidFrame.rowconfigure((0,1,2,3), weight=1)
+    defMidFrame.rowconfigure((0,1,2,3), weight=300)
 
     newUpdateFrame = ttk.Frame(defTopFrame, borderwidth=2)
     newUpdateFrame.grid(column=1, row=1, padx=5, pady=5, sticky='nesw')
@@ -626,7 +653,7 @@ def open_definition_window():
 
     #LABELS
     #In top frame
-    defTitleLbl = ttk.Label(defTopFrame, text = "Add or update a definition", anchor=tk.CENTER, background="white")
+    defTitleLbl = ttk.Label(defTopFrame, text = "Add or update a definition", anchor=tk.CENTER, background="SteelBlue3")
     defTitleLbl.grid(column=0, columnspan=5, row=0, padx=5, sticky="nsew")
     newUpdateDefLbl = ttk.Label(defTopFrame, text = "Choose New/Update:", background="white")
     newUpdateDefLbl.grid(column=0, row=1, padx=5, pady=3, sticky="nsew")
@@ -637,24 +664,24 @@ def open_definition_window():
     wordInDatabaseLbl = ttk.Label(defTopFrame, textvariable = wordToDefine, anchor=tk.CENTER, background="white")
     wordInDatabaseLbl.grid(column=0, columnspan=5, row=4, padx=5, sticky="nsew")
     #In middle frame
-    engIdDefLbl = ttk.Label(defMidFrame, text = "English word ID", background="cyan")
-    engIdDefLbl.grid(column=0, row=0, padx=5, sticky="nsew")
-    engDefLbl = ttk.Label(defMidFrame, text = "English definition", background="cyan")
-    engDefLbl.grid(column=1, row=0, padx=5, sticky="nsew")
-    engExampleLbl = ttk.Label(defMidFrame, text = "English example", background="cyan")
-    engExampleLbl.grid(column=2, row=0, padx=5, sticky="nsew")
-    displayEngIdLbl = tk.Label(defMidFrame, textvariable = engIdDef, background="white")    #Using the tk label because ttk label won't work with the stringvar
-    displayEngIdLbl.grid(column=0, row=1, padx=5, sticky="nsew")
+    #engIdDefLbl = ttk.Label(defMidFrame, text = "English word ID", background="SteelBlue1")
+    #engIdDefLbl.grid(column=0, row=0, padx=5, sticky="nsew")
+    engDefLbl = ttk.Label(defMidFrame, text = "English definition", background="SteelBlue1")
+    engDefLbl.grid(column=0, columnspan=2, row=0, padx=2, sticky="nsew")
+    engExampleLbl = ttk.Label(defMidFrame, text = "English example", background="SteelBlue1")
+    engExampleLbl.grid(column=2, columnspan=2, row=0, padx=2, sticky="nsew")
+    #displayEngIdLbl = tk.Label(defMidFrame, textvariable = engIdDef, background="white")    #Using the tk label because ttk label won't work with the stringvar
+    #displayEngIdLbl.grid(column=0, row=1, padx=5, sticky="nsew")
     
 
-    oshIdDefLbl = ttk.Label(defMidFrame, text = "Oshindonga word ID", background="cyan")
-    oshIdDefLbl.grid(column=0, row=2, padx=5, sticky="nsew")
-    oshDefLbl = ttk.Label(defMidFrame, text = "Oshindonga definition", background="cyan")
-    oshDefLbl.grid(column=1, row=2, padx=5, sticky="nsew")
-    oshExampleLbl = ttk.Label(defMidFrame, text = "Oshindonga example", background="cyan")
-    oshExampleLbl.grid(column=2, row=2, padx=5, sticky="nsew")
-    displayOshIdLbl = tk.Label(defMidFrame, textvariable = oshIdDef, background="white")    #Using the tk label because ttk label won't work with the stringvar
-    displayOshIdLbl.grid(column=0, row=3, padx=5, sticky="nsew")
+    #oshIdDefLbl = ttk.Label(defMidFrame, text = "Oshindonga word ID", background="SteelBlue1")
+    #oshIdDefLbl.grid(column=0, row=2, padx=5, sticky="nsew")
+    oshDefLbl = ttk.Label(defMidFrame, text = "Oshindonga definition", background="SteelBlue1")
+    oshDefLbl.grid(column=0, columnspan=2, row=2, padx=2, sticky="nsew")
+    oshExampleLbl = ttk.Label(defMidFrame, text = "Oshindonga example", background="SteelBlue1")
+    oshExampleLbl.grid(column=2, columnspan=2, row=2, padx=2, sticky="nsew")
+    #displayOshIdLbl = tk.Label(defMidFrame, textvariable = oshIdDef, background="white")    #Using the tk label because ttk label won't work with the stringvar
+    #displayOshIdLbl.grid(column=0, row=3, padx=5, sticky="nsew")
 
     #BUTTONS
     searchDefBtn = ttk.Button(searchOshFrame, text = "Search", command=search_word_or_definition)
@@ -680,14 +707,14 @@ def open_definition_window():
     adjectiveRbtn.grid(column=3, row=0, sticky="nsew")
 
     #TEXT ENTRY for multi-line texts
-    engDefTxt = tk.Text(defMidFrame, height=2, width=40)
-    engDefTxt.grid(column=1, row=1, sticky="nsew", pady=2)
-    engExampleTxt = tk.Text(defMidFrame, height=2, width=40)
-    engExampleTxt.grid(column=2, row=1, sticky="nsew", pady=2)
-    oshDefTxt = tk.Text(defMidFrame, height=2, width=40)
-    oshDefTxt.grid(column=1, row=3, sticky="nsew", pady=2)
-    oshExampleTxt = tk.Text(defMidFrame, height=2, width=40)
-    oshExampleTxt.grid(column=2, row=3, sticky="nsew", pady=2)
+    engDefTxt = tk.Text(defMidFrame, height=10, width=40)
+    engDefTxt.grid(column=0, columnspan=2, row=1, sticky="nsew", pady=2)
+    engExampleTxt = tk.Text(defMidFrame, height=10, width=50)
+    engExampleTxt.grid(column=2, columnspan=2, row=1, sticky="nsew", pady=2)
+    oshDefTxt = tk.Text(defMidFrame, height=10, width=40)
+    oshDefTxt.grid(column=0, columnspan=2, row=3, sticky="nsew", pady=2)
+    oshExampleTxt = tk.Text(defMidFrame, height=10, width=50)
+    oshExampleTxt.grid(column=2, columnspan=2, row=3, sticky="nsew", pady=2)
 
     #ENTRY BOXES
     oshWordDefEbx = ttk.Entry(searchOshFrame)
@@ -712,7 +739,7 @@ def open_delete_word_window():
     delWordMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
 
     #LABELS
-    delWordTitleLbl = ttk.Label(delWordMainFrame, text = "Delete a word from the database", anchor=tk.CENTER, background="white")
+    delWordTitleLbl = ttk.Label(delWordMainFrame, text = "Delete a word from the database", anchor=tk.CENTER, background="SteelBlue3")
     delWordTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
     oshEngDelLbl = ttk.Label(delWordMainFrame, text = "Choose English/Oshindonga:", background="white")
     oshEngDelLbl.grid(column=0, row=1, padx=5, pady=3, sticky="nsew")
@@ -755,20 +782,22 @@ def open_delete_definition_window():
     delDefMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
 
     #LABELS
-    delDefTitleLbl = ttk.Label(delDefMainFrame, text = "Delete a definition from the database", anchor=tk.CENTER, background="white")
+    delDefTitleLbl = ttk.Label(delDefMainFrame, text = "Delete a definition from the database", anchor=tk.CENTER, background="SteelBlue3")
     delDefTitleLbl.grid(column=0, columnspan=3, row=0, padx=5, sticky="nsew")
     speechDefDelLbl = ttk.Label(delDefMainFrame, text = "Choose the part of speech:", background="white")
-    speechDefDelLbl.grid(column=0, row=2, padx=5, pady=3, sticky="nsew")
-    defDisplayDelLbl = ttk.Label(delDefMainFrame, text = "Definition to be deleted:", background="white")
+    speechDefDelLbl.grid(column=0, row=1, padx=5, pady=3, sticky="nsew")
+    defIdDelLbl = ttk.Label(delDefMainFrame, text = "ID of definition to be deleted:", background="white")
+    defIdDelLbl.grid(column=0, row=2, padx=5, pady=3, sticky="nsew")
+    defDisplayDelLbl = ttk.Label(delDefMainFrame, text = "Words for which definitions will be deleted:", anchor=tk.CENTER, background="white")
     defDisplayDelLbl.grid(column=0, columnspan=3, row=3, padx=5, pady=3, sticky="nsew")
 
     #BUTTONS
     searchDefIdDelBtn = ttk.Button(delDefMainFrame, text = "Search database")
     searchDefIdDelBtn.grid(column=2, row=2, padx=5, sticky="nsew")
     delDefBtn = ttk.Button(delDefMainFrame, text = "Delete")
-    delDefBtn.grid(column=1, row=4, padx=5, sticky="nsew")
+    delDefBtn.grid(column=1, row=4, padx=5, pady=5, sticky="nsew")
     cancelDefDelBtn = ttk.Button(delDefMainFrame, text = "Cancel")
-    cancelDefDelBtn.grid(column=2, row=4, padx=5, sticky="nsew")
+    cancelDefDelBtn.grid(column=2, row=4, padx=5, pady=5, sticky="nsew")
     
     #RADIOBUTTONS
     nounDelRbtn = ttk.Radiobutton(delDefMainFrame, text="Noun", variable=nounDefDel, value="Noun")
@@ -782,7 +811,7 @@ def open_delete_definition_window():
 
 def open_main_window():
     global mainWindow   #Makes it accessible to all other functions
-    mainWindow =  ThemedTk(theme="arc") #tk.Tk()
+    mainWindow =  ThemedTk(theme="default") #tk.Tk()
     mainWindow.title("Oshinglish Dictionary First Edition")
     #mainWindow.configure(background = "#0970d2")
     #mainWindow.geometry("900x600+300+0")
@@ -811,12 +840,12 @@ def open_main_window():
     def select_def_to_search():     #
         language = inputLang.get()  #Checks language input selected on radiobutton
         if language == "English":
-            mainDefinition = find_definition(find_english_word(searchEbx.get()))    #gets word in the entrybox, passes it to find_english_word(), which is passed to find_definition(), then assigns it to mainDefinition
+            mainDefinition = find_definition(find_english_word(searchEbx.get().strip()))    #gets word in the entrybox, passes it to find_english_word(), which is passed to find_definition(), then assigns it to mainDefinition
         elif language == "Oshindonga":
-            mainDefinition = find_definition(find_oshindonga_word(searchEbx.get())) #gets word in the entrybox, passes it to find_oshindonga_word(), which is passed to find_definition(), then assigns it to mainDefinition
+            mainDefinition = find_definition(find_oshindonga_word(searchEbx.get().strip())) #gets word in the entrybox, passes it to find_oshindonga_word(), which is passed to find_definition(), then assigns it to mainDefinition
         else:
             return messagebox.showerror(title="Input language", message="You did not select an input language.\nSelect the input language and search again.")
-        searchedWord.set(searchEbx.get())   #Gets the word in entrybox and assigns it to searchedWord StringVar for display at the top of the text widget
+        searchedWord.set(searchEbx.get().strip())   #Gets the word in entrybox and assigns it to searchedWord StringVar for display at the top of the text widget
         definitionTxt.delete("1.0", tk.END) #Clears the text widget
         definitionTxt.insert(tk.END, mainDefinition)    #Inserts the value of mainDefinition into the text widget
         return
@@ -864,7 +893,7 @@ def open_main_window():
     logoLbl.image = logo #Keeps a reference to avoid blanking of the image (http://effbot.org/pyfaq/why-do-my-tkinter-images-not-appear.htm)
     logoLbl.grid(column=0, row=0, sticky="w")
     #mainWindow.rowconfigure(1, weight=0, minsize=25) #Inserts an empty row btwn the 2 labels (NB: minsize is in pixels)
-    titleLbl = ttk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="white")
+    titleLbl = ttk.Label(topFrame, text = "Oshinglish Dictionary First Edition", background="SteelBlue3")
     titleLbl.grid(column=1, row=0, padx=5, sticky="nsew")
     searchLbl = ttk.Label(leftFrame, text = "Search word definition", background="white")
     searchLbl.grid(column=0, row=0, sticky="nsew", pady=2)
@@ -878,17 +907,17 @@ def open_main_window():
 
     #BUTTONS
     deleteDefBtn = ttk.Button(rightFrame, text = "Delete definition from database", command=open_delete_definition_window)
-    deleteDefBtn.grid(column=3, row=0, sticky="nsew")
+    deleteDefBtn.grid(column=3, row=0, padx=2, pady=2, sticky="nsew")
     searchBtn = ttk.Button(leftFrame, text = "Search", command=select_def_to_search)
-    searchBtn.grid(column=1, row=2)
+    searchBtn.grid(column=1, row=2, padx=2, pady=2)
     addEngBtn = ttk.Button(rightFrame, text = "Add/update English word", command=open_english_window)
-    addEngBtn.grid(column=0, row=1, sticky="nsew")
+    addEngBtn.grid(column=0, row=1, padx=2, pady=2, sticky="nsew")
     addOshBtn = ttk.Button(rightFrame, text = "Add/Update Oshindonga word", command=open_oshindonga_window)
-    addOshBtn.grid(column=1, row=1, sticky="nsew")
+    addOshBtn.grid(column=1, row=1, padx=2, pady=2, sticky="nsew")
     addDefBtn = ttk.Button(rightFrame, text = "Add/Update definition", command=open_definition_window)
-    addDefBtn.grid(column=2, row=1, sticky="nsew")
+    addDefBtn.grid(column=2, row=1, padx=2, pady=2, sticky="nsew")
     deleteWordBtn = ttk.Button(rightFrame, text = "Delete word from database", command=open_delete_word_window)
-    deleteWordBtn.grid(column=3, row=1, sticky="nsew")
+    deleteWordBtn.grid(column=3, row=1, padx=2, pady=2, sticky="nsew")
 
     #RADIOBUTTONS
     englishRbtn = ttk.Radiobutton(leftFrame, text="English", variable=inputLang, value="English")
