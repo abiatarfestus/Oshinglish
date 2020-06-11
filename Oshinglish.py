@@ -184,7 +184,7 @@ def find_oshindonga_id(id): #Returns input value/argument for find_definition if
         c.execute("SELECT word FROM oshindonga WHERE id=(?)", (id,))
         result = c.fetchone()
         if result == None:
-            return "Oshitya inashi monika"
+            return "Word not found"
         else:
             return result[0]    #Returns Oshidonga word, which should be passed to search_oshindonga_id()
 
@@ -195,7 +195,7 @@ def find_english_id(id): #Returns input value/argument for find_definition if wo
         if result == None:
             return "Word not found"
         else:
-            return result[0]    #Returns Oshidonga word, which should be passed to search_english_id()
+            return result[0]    #Returns English word, which should be passed to search_english_id()
 
 #Search part of speech tables for definitions
 def find_definition(wordID):
@@ -217,18 +217,16 @@ def find_definition(wordID):
             return "No definition found"
         return definitions
 
-def remove_oshindonga_word(id):
+def delete_word(table, id):
     with conn:
-        c.execute("DELETE FROM oshindonga WHERE id = (?)", (id,))
+        wdeletequery = "DELETE FROM {} WHERE id = (?)".format(table)
+        c.execute(wdeletequery, (id,))
 
-def remove_english_word(id):
+def delete_definition(table, id):
     with conn:
-        c.execute("DELETE FROM english WHERE id = (?)", (id,))
-
-def remove_definition(table, id):
-    with conn:
-        squery ="SELECT * FROM {} WHERE english_id = (?)".format(table)
-        c.execute(squery, (id,))
+        ddeletequery = "DELETE FROM {} WHERE id = (?)".format(table)
+        c.execute(ddeletequery, (id,))
+        
 
 #Update/modify words and definitions
 def update_english_word(word="", id=0):
@@ -362,7 +360,7 @@ def open_english_window():
     newEngSearchBtn.grid(column=2, row=1, padx=5, sticky="nsew")
     newEngSaveBtn = ttk.Button(engMainFrame, text = "Save", command=select_new_or_update_english)
     newEngSaveBtn.grid(column=0, row=5, padx=5, sticky="nsew")
-    newEngCancelBtn = ttk.Button(engMainFrame, text = "Cancel")
+    newEngCancelBtn = ttk.Button(engMainFrame, text = "Cancel", command=engWindow.destroy)
     newEngCancelBtn.grid(column=1, row=5, padx=5, sticky="nsew")
     #RADIOBUTTONS
     newEngRbtn = ttk.Radiobutton(engMainFrame, text="New", variable=engSelectedRbtn, value="New")
@@ -456,7 +454,7 @@ def open_oshindonga_window():
     searchOshIdBtn.grid(column=2, row=5, padx=5, sticky="nsew")
     newOshSaveBtn = ttk.Button(oshMainFrame, text = "Save", command=select_new_or_update_oshindonga)
     newOshSaveBtn.grid(column=0, row=7, padx=5, sticky="nsew")
-    newOshCancelBtn = ttk.Button(oshMainFrame, text = "Cancel")
+    newOshCancelBtn = ttk.Button(oshMainFrame, text = "Cancel", command=oshWindow.destroy)
     newOshCancelBtn.grid(column=1, row=7, padx=5, sticky="nsew")
     #RADIOBUTTONS
     newOshRbtn = ttk.Radiobutton(oshMainFrame, text="New", variable=oshSelectedRbtn, value="New")
@@ -604,8 +602,7 @@ def open_definition_window():
                     Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord1, definedWord2, partsOfSpeech.get()))
                     add_definition(table=partsOfSpeech.get(), engId=int(engIdDef.get()), oshId=int(oshIdDef.get()), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END))
                 else: #Operation is update
-                    messagebox.askyesno(title="Confirm operation", message="You're about to {0} the definitions of '{1}' and '{2}' in the {3} category.\n\
-                    \nClick yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord1, definedWord2, partsOfSpeech.get()))
+                    messagebox.askyesno(title="Confirm operation", message="You're about to {0} the definitions of '{1}' and '{2}' in the {3} category. Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord1, definedWord2, partsOfSpeech.get()))
                     update_definition(table=partsOfSpeech.get(), engId=int(engIdDef.get()), oshId=int(oshIdDef.get()), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END), id=int(oshWordDefEbx.get().strip()))
             
     #FRAMES
@@ -689,7 +686,7 @@ def open_definition_window():
 
     saveDefBtn = ttk.Button(defBottomFrame, text = "Save", command=submit_definition)
     saveDefBtn.grid(column=0, row=0, padx=5, sticky="nsew")
-    cancelDefBtn = ttk.Button(defBottomFrame, text = "Cancel")
+    cancelDefBtn = ttk.Button(defBottomFrame, text = "Cancel", command=defWindow.destroy)
     cancelDefBtn.grid(column=1, row=0, padx=5, sticky="nsew")
 
     #RADIOBUTTONS
@@ -730,10 +727,46 @@ def open_delete_word_window():
 
     #VARIABLES
     #Variables for the radiobuttons
-    engDel = tk.StringVar()
-    oshDel = tk.StringVar()
+    engOrOshDel = tk.StringVar()
+    engOrOshDel.set("")
+    wordToBeDeleted = tk.StringVar()
+    wordToBeDeleted.set("No word is selected for deletion")
     
-
+    def search_word_to_delete(wordDelId=0):
+        success = True
+        global returnedWord
+        try:
+            wordDelId = int(wordIdDelEbx.get().strip())
+            if engOrOshDel.get() == "English":
+                returnedWord = find_english_id(wordDelId)
+                wordToBeDeleted.set("The word you've chosen to delete is: " + returnedWord)
+                if returnedWord == "Word not found":
+                    success = False
+            elif engOrOshDel.get() == "Oshindonga":
+                returnedWord = find_oshindonga_id(wordDelId)
+                wordToBeDeleted.set("The word you've chosen to delete is: " + returnedWord)
+                if returnedWord == "Word not found":
+                    success = False
+            else:
+                return messagebox.showerror(parent=delWordWindow, title="Language source error", message="Language source for the searched word not selected. Select English or Oshindonga and try again.")
+        except ValueError:
+            success = False
+            messagebox.showerror(parent=delWordWindow, title="Word ID error", message= "No word ID or invalid ID was entered. Enter a valid ID and try again.")
+        return success
+                        
+    def initiate_delete_word():
+        if search_word_to_delete():
+            if messagebox.askyesno(parent=delWordWindow, title="Delete confirmation", message="You're about to delete the word '"+returnedWord+"' from the database. Do you want to continue?"):
+                try:
+                    delete_word(table=engOrOshDel.get(), id=int(wordIdDelEbx.get().strip()))
+                    messagebox.showinfo(parent=delWordWindow, title="Deletion confirmation", message="Word successfully deleted from the dictionary.")
+                    delWordWindow.destroy()
+                except sqlite3.IntegrityError as error:
+                    messagebox.showerror(parent=delWordWindow, title="Exception error", message=error)
+        #     else:
+        #         return
+        # else:
+        #     return
     #FRAMES
     delWordMainFrame = ttk.Frame(delWordWindow, relief='raised', borderwidth=3)
     delWordMainFrame.grid(column=0, row=0, padx=5, pady=5, sticky='nesw')
@@ -745,21 +778,21 @@ def open_delete_word_window():
     oshEngDelLbl.grid(column=0, row=1, padx=5, pady=3, sticky="nsew")
     wordIdDelLbl = ttk.Label(delWordMainFrame, text = "ID of word to be deleted:", background="white")
     wordIdDelLbl.grid(column=0, row=2, padx=5, pady=3, sticky="nsew")
-    wordToDelLbl = ttk.Label(delWordMainFrame, text = "The word you've to delete is:", anchor=tk.CENTER, background="white")
+    wordToDelLbl = ttk.Label(delWordMainFrame, textvariable = wordToBeDeleted, anchor=tk.CENTER, background="white")
     wordToDelLbl.grid(column=0, columnspan=3, row=3, padx=5, pady=3, sticky="nsew")
 
     #BUTTONS
-    searchWordIdDelBtn = ttk.Button(delWordMainFrame, text = "Search database")
+    searchWordIdDelBtn = ttk.Button(delWordMainFrame, text = "Search database", command=search_word_to_delete)
     searchWordIdDelBtn.grid(column=2, row=2, padx=5, sticky="nsew")
-    delWordBtn = ttk.Button(delWordMainFrame, text = "Delete")
+    delWordBtn = ttk.Button(delWordMainFrame, text = "Delete", command=initiate_delete_word)
     delWordBtn.grid(column=1, row=4, padx=5, sticky="nsew")
-    cancelDelWordBtn = ttk.Button(delWordMainFrame, text = "Cancel")
+    cancelDelWordBtn = ttk.Button(delWordMainFrame, text = "Cancel", command=delWordWindow.destroy)
     cancelDelWordBtn.grid(column=2, row=4, padx=5, sticky="nsew")
     
     #RADIOBUTTONS
-    engDelRbtn = ttk.Radiobutton(delWordMainFrame, text="English", variable=engDel, value="English")
+    engDelRbtn = ttk.Radiobutton(delWordMainFrame, text="English", variable=engOrOshDel, value="English")
     engDelRbtn.grid(column=1, row=1, sticky="nsew")
-    oshDelRbtn = ttk.Radiobutton(delWordMainFrame, text="Oshindonga", variable=oshDel, value="Oshindonga")
+    oshDelRbtn = ttk.Radiobutton(delWordMainFrame, text="Oshindonga", variable=engOrOshDel, value="Oshindonga")
     oshDelRbtn.grid(column=2, row=1, sticky="nsew")
 
     #ENTRY BOXES
@@ -773,9 +806,54 @@ def open_delete_definition_window():
 
     #VARIABLES
     #Variables for the radiobuttons
-    nounDefDel = tk.StringVar()
-    verbDefDel = tk.StringVar()
+    global speechDelDef
+    speechDelDef = tk.StringVar()
+    speechDelDef.set("") 
+    pairConfirmation = tk.StringVar()
+    pairConfirmation.set("No definition is selected for deletion.")
     
+    def search_def_for_deletion(defTable="", DefId=0):
+        success = True      #A bolean to be returned by this function for use in initiate_delete_definition()
+        defTable = speechDelDef.get()
+        engOfPair = ""
+        oshOfPair = ""
+        if speechDelDef.get() != "":
+            try:
+                defId = int(defIdDelEbx.get().strip())
+                with conn:
+                    searchDefQuery = "SELECT english_id, oshindonga_id FROM {0} WHERE id=(?)".format(defTable)
+                    c.execute(searchDefQuery, (defId,))
+                    result = c.fetchone()
+                    print("Result", result)
+                    if result == None:
+                        pairConfirmation.set("No definition found")
+                        success = False
+                        return success
+                    else:
+                        engOfPair = find_english_id(result[0])   #Returns the English word of the ID in the returnd definition
+                        #print("defined1: ", definedWord2)
+                        oshOfPair = find_oshindonga_id(result[1]) #Returns the Oshindonga word of the ID in the returnd definition
+                        pairConfirmation.set("The definitions selected for deletion are for the pair: "'"{0}"'" and "'"{1}"'". ".format(engOfPair, oshOfPair))
+                        return success
+            except ValueError:
+                success = False
+                messagebox.showerror(parent=delDefWindow, title="Definition ID error", message= "No definition ID or invalid ID was entered.\nEnter a valid ID and try again.")
+        else:
+            success = False
+            messagebox.showerror(parent=delDefWindow, title="Definition category error", message= "No part of speech is selected. Select the part of speech of the definition you're searching and try again.")
+        return success
+
+
+    def initiate_delete_definition():
+        if search_def_for_deletion(): #If search_def_for_deletion() returns True/success, which means definition is found
+            if messagebox.askyesno(parent=delDefWindow, title="Delete confirmation", message=pairConfirmation.get() + " Do you want to continue?"):
+                delete_definition(table=speechDelDef.get(), id=int(defIdDelEbx.get().strip()))
+            else:
+                return
+        else:
+            return
+        messagebox.showinfo(parent=delDefWindow, title="Deletion confirmation", message="Defenitions successfully deleted from the dictionary")
+        delDefWindow.destroy()
 
     #FRAMES
     delDefMainFrame = ttk.Frame(delDefWindow, relief='raised', borderwidth=3)
@@ -788,21 +866,21 @@ def open_delete_definition_window():
     speechDefDelLbl.grid(column=0, row=1, padx=5, pady=3, sticky="nsew")
     defIdDelLbl = ttk.Label(delDefMainFrame, text = "ID of definition to be deleted:", background="white")
     defIdDelLbl.grid(column=0, row=2, padx=5, pady=3, sticky="nsew")
-    defDisplayDelLbl = ttk.Label(delDefMainFrame, text = "Words for which definitions will be deleted:", anchor=tk.CENTER, background="white")
+    defDisplayDelLbl = ttk.Label(delDefMainFrame, textvariable = pairConfirmation, anchor=tk.CENTER, background="white")
     defDisplayDelLbl.grid(column=0, columnspan=3, row=3, padx=5, pady=3, sticky="nsew")
 
     #BUTTONS
-    searchDefIdDelBtn = ttk.Button(delDefMainFrame, text = "Search database")
+    searchDefIdDelBtn = ttk.Button(delDefMainFrame, text = "Search database", command=search_def_for_deletion)
     searchDefIdDelBtn.grid(column=2, row=2, padx=5, sticky="nsew")
-    delDefBtn = ttk.Button(delDefMainFrame, text = "Delete")
+    delDefBtn = ttk.Button(delDefMainFrame, text = "Delete", command=initiate_delete_definition)
     delDefBtn.grid(column=1, row=4, padx=5, pady=5, sticky="nsew")
-    cancelDefDelBtn = ttk.Button(delDefMainFrame, text = "Cancel")
+    cancelDefDelBtn = ttk.Button(delDefMainFrame, text = "Cancel", command=delDefWindow.destroy)
     cancelDefDelBtn.grid(column=2, row=4, padx=5, pady=5, sticky="nsew")
     
     #RADIOBUTTONS
-    nounDelRbtn = ttk.Radiobutton(delDefMainFrame, text="Noun", variable=nounDefDel, value="Noun")
+    nounDelRbtn = ttk.Radiobutton(delDefMainFrame, text="Noun", variable=speechDelDef, value="nouns")
     nounDelRbtn.grid(column=1, row=1, sticky="nsew")
-    verbDelRbtn = ttk.Radiobutton(delDefMainFrame, text="Verb", variable=verbDefDel, value="Verb")
+    verbDelRbtn = ttk.Radiobutton(delDefMainFrame, text="Verb", variable=speechDelDef, value="verbs")
     verbDelRbtn.grid(column=2, row=1, sticky="nsew")
 
     #ENTRY BOXES
