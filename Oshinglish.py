@@ -79,9 +79,9 @@ def add_english_word(word=""):
             c.execute("INSERT INTO english (word) VALUES (?)", (word,))
         newEngEbx.delete(0, tk.END)
     except sqlite3.IntegrityError:
-        messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
+        messagebox.showerror(parent=engWindow, title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
     else:
-        messagebox.showinfo(title="Word added", message= "The word '" +word+ "' was successfully added to the dictionary.")
+        messagebox.showinfo(parent=engWindow, title="Word added", message= "The word '" +word+ "' was successfully added to the dictionary.")
         
 
 
@@ -97,9 +97,9 @@ def add_oshindonga_word(word="", engId=0): #Remove arguments if not necessary
         global displayEngId3
         displayEngId3 = ""      #Resets the the variable of English word ID to avoid inadvertent linking of Oshindonga words to wrong English words
     except sqlite3.IntegrityError:
-        messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
+        messagebox.showerror(parent=oshWindow, title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
     else:
-        messagebox.showinfo(title="Word added", message= "The word '" +word+ "' was successfully added to the dictionary.")
+        messagebox.showinfo(parent=oshWindow, title="Word added", message= "The word '" +word+ "' was successfully added to the dictionary.")
 
 #Add a noun (any) definiton
 def add_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx):
@@ -130,10 +130,10 @@ def add_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx):
             oshExampleTxt.delete("1.0", tk.END)
             oshWordDefEbx.delete(0, tk.END)
     except Exception as error:
-        messagebox.showerror(title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
+        messagebox.showerror(parent=defWindow, title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
              If the error persists, please report it to the developer.".format(error)) #Search for likely exception
     else:
-        messagebox.showinfo(title="Definition added", message= "Definition(s) successfully added to the dictionary.")
+        messagebox.showinfo(parent=defWindow, title="Definition added", message= "Definition(s) successfully added to the dictionary.")
 
 #Add a verb definition
 # def add_verb_definition(engId, oshId, engDef, engEx, oshDef, oshEx):
@@ -175,7 +175,7 @@ def find_oshindonga_word(word): #Returns input value/argument for find_definitio
         c.execute("SELECT english_id FROM oshindonga WHERE word=(?)", (word,))
         result = c.fetchone()
         if result == None:
-            return "Oshitya inashi monika"
+            return "Word not found"
         else:
             return result[0]    #Returns english_id, which should be passed to find definition
 
@@ -199,6 +199,8 @@ def find_english_id(id): #Returns input value/argument for find_definition if wo
 
 #Search part of speech tables for definitions
 def find_definition(wordID):
+    if type(wordID) != int:
+        messagebox.showinfo(parent=mainWindow, title="Word not found", message="The word you searched for was not found in the dictionary.") 
     with conn:
         definitions = []
         tables = ["noun", "verb"]
@@ -234,14 +236,14 @@ def update_english_word(word="", id=0):
     try: 
         id = int(updateEngEbx.get().strip()) #Gets the value from the update entrybox, converts it to int (to match id data type)
     except ValueError:
-         messagebox.showerror(title="English ID error", message= "No word ID or invalid ID was entered.\nEnter a valid ID and try again.")
+         messagebox.showerror(parent=engWindow, title="English ID error", message= "No word ID or invalid ID was entered.\nEnter a valid ID and try again.")
     else:
         with conn:
             c.execute("SELECT word FROM english WHERE id=(?)", (id,))
             result = c.fetchone()
             print("Result: ", result)
             if result == None:
-                return messagebox.showerror(title="ID not found", message= "The ID entered was not found in the database.\nEnter a valid ID and try again.")
+                return messagebox.showerror(parent=engWindow, title="ID not found", message= "The ID entered was not found in the database.\nEnter a valid ID and try again.")
             else:
                 try:
                     with conn:
@@ -249,9 +251,9 @@ def update_english_word(word="", id=0):
                     newEngEbx.delete(0, tk.END)
                     updateEngEbx.delete(0, tk.END)
                 except sqlite3.IntegrityError:
-                    messagebox.showerror(title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
+                    messagebox.showerror(parent=engWindow, title="Duplicate found", message= "Error: " + word + " is already in the dictionary.")
                 else:
-                    messagebox.showinfo(title="Word updated", message= "The word was successfully updated.")
+                    messagebox.showinfo(parent=engWindow, title="Word updated", message= "The word was successfully updated.")
 
 
 def update_oshindonga_word(word="", id=0):
@@ -259,19 +261,19 @@ def update_oshindonga_word(word="", id=0):
     try: 
         id = int(oshWordIdEbx.get().strip()) #Gets the value from the update entrybox, converts it to int (to match id data type)
     except ValueError:
-         messagebox.showerror(title="Oshindonga ID error 1", message= "No word ID or invalid ID was entered. Enter valid ID, click search and try again if the word you wish to modify appears below.")
+         messagebox.showerror(parent=oshWindow, title="Oshindonga ID error 1", message= "No word ID or invalid ID was entered. Enter valid ID, click search and try again if the word you wish to modify appears below.")
     else:
         with conn:
             c.execute("SELECT word FROM oshindonga WHERE id=(?)", (id,))
             result = c.fetchone()
             if result == None:      #This checks if the ID exists before trying to update the word
-                return messagebox.showerror(title="Oshindonga ID error 2", message= "The ID entered was not found in the database.Enter valid ID, click search. If no word is returned, select New instead of Update.")
+                return messagebox.showerror(parent=oshWindow, title="Oshindonga ID error 2", message= "The ID entered was not found in the database.Enter valid ID, click search. If no word is returned, select New instead of Update.")
             else:
                 with conn:
                     c.execute("UPDATE oshindonga SET word = (?) WHERE id = (?)", (word, id))
                 newOshEbx.delete(0, tk.END)
                 oshWordIdEbx.delete(0, tk.END)
-                messagebox.showinfo(title="Word updated", message= "Word was successfully updated.")
+                messagebox.showinfo(parent=oshWindow, title="Word updated", message= "Word was successfully updated.")
 
 def update_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx, id):
     global engIdDef #To allow resetting of these labels and text boxes after successful submittion of definitions
@@ -300,16 +302,17 @@ def update_definition(table, engId, oshId, engDef, engEx, oshDef, oshEx, id):
             oshExampleTxt.delete("1.0", tk.END)
             oshWordDefEbx.delete(0, tk.END)
     except Exception as error:
-        messagebox.showerror(title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
+        messagebox.showerror(parent=defWindow, title="Definition error", message= "An unexpected error occured: {0}\n\n Please check everything is fine and try again.\
              If the error persists, please report it to the developer.".format(error)) #Search for likely exception
     else:
-        messagebox.showinfo(title="Definition updated", message= "Definition(s) successfully updated to the dictionary.")
+        messagebox.showinfo(parent=defWindow, title="Definition updated", message= "Definition(s) successfully updated to the dictionary.")
 
 
 #conn.close()
 
 
 def open_english_window():
+    global engWindow
     engWindow = tk.Toplevel(mainWindow)
     engWindow.title("Add/Update English word")
     engWindow.resizable(tk.FALSE,tk.FALSE)
@@ -328,7 +331,7 @@ def open_english_window():
         elif newOrUpdateEng == "Update":
             update_english_word() #Calls the update_english_word function
         else:
-            return messagebox.showerror(title="Operation unknown", message="Operation not specified.\nSelect New or Update and search again.")
+            return messagebox.showerror(parent=engWindow, title="Operation unknown", message="Operation not specified.\nSelect New or Update and search again.")
         engSelectedRbtn.set("")
         return
 
@@ -378,6 +381,7 @@ def open_english_window():
     updateEngEbx.grid(column=1, row=3, sticky="nsew", pady=2)
 
 def open_oshindonga_window():
+    global oshWindow
     oshWindow = tk.Toplevel(mainWindow)
     oshWindow.title("Add/Update Oshindonga word")
     oshWindow.resizable(tk.FALSE,tk.FALSE)
@@ -405,7 +409,7 @@ def open_oshindonga_window():
         try:
             id = int(oshWordIdEbx.get().strip()) #Gets the value from the update entrybox, converts it to int (to match id data type)
         except ValueError:
-            messagebox.showerror(title="Oshindonga ID error 3", message= "No word ID or invalid ID was entered. Enter valid ID, click search and try again if the word you wish to modify appears below.")
+            messagebox.showerror(parent=oshWindow, title="Oshindonga ID error 3", message= "No word ID or invalid ID was entered. Enter valid ID, click search and try again if the word you wish to modify appears below.")
         else:
             oshUpdateWord = find_oshindonga_id(id) #Calls the function to find oshindonga word to be updated
             #print(oshUpdateWord)
@@ -418,13 +422,13 @@ def open_oshindonga_window():
         if newOrUpdateOsh == "New":
             #print("EnglishID:", displayEngId3)
             if displayEngId3 == "" or displayEngId3 == "Word not found": #When user tries to save before searhing for the English word
-                return messagebox.showerror(title="English ID error", message="English word ID is not provided. Search for the English word and try again. If the corresponding English word is not in the database, add it first.")
+                return messagebox.showerror(parent=oshWindow, title="English ID error", message="English word ID is not provided. Search for the English word and try again. If the corresponding English word is not in the database, add it first.")
             else:
                 add_oshindonga_word()    #Calls the add_oshindonga_word function
         elif newOrUpdateOsh == "Update":
             update_oshindonga_word() #Calls the update_oshindonga_word function
         else:
-            return messagebox.showerror(title="Operation not specified", message="Operation not specified.\nSelect New or Update and try again.")
+            return messagebox.showerror(parent=oshWindow, title="Operation not specified", message="Operation not specified.\nSelect New or Update and try again.")
         oshSelectedRbtn.set("")
         return
 
@@ -475,6 +479,7 @@ def open_oshindonga_window():
     oshWordIdEbx.grid(column=1, row=5, sticky="nsew", pady=2)
 
 def open_definition_window():
+    global defWindow
     defWindow = tk.Toplevel(mainWindow)
     defWindow.title("Add/Update a definition")
     #Configuring column and row resizability
@@ -536,7 +541,7 @@ def open_definition_window():
         #defFound = "Definitions of "'"{0}"'" and "'"{1}"'" were found populated in the fields below. Edit the definitions and click save.".format(definedWord1, definedWord2)
         if newOrUpdateDef.get() == "update":
             if partsOfSpeech.get() == "":
-                messagebox.showerror(title="Definition category error", message= "No part of speech is selected. Select the part of speech of the definition you're searching for.")
+                messagebox.showerror(parent=defWindow, title="Definition category error", message= "No part of speech is selected. Select the part of speech of the definition you're searching for.")
             else:
                 try:
                     searchInput = int(oshWordDefEbx.get().strip())
@@ -571,7 +576,7 @@ def open_definition_window():
                             oshExampleTxt.insert(tk.END, result[6])
                             return    
                 except ValueError:
-                    messagebox.showerror(title="Definition ID error", message= "No definition ID or invalid ID was entered.\nEnter a valid ID and try again.")       
+                    messagebox.showerror(parent=defWindow, title="Definition ID error", message= "No definition ID or invalid ID was entered.\nEnter a valid ID and try again.")       
         else: #Operation equals to new (or no option is selected:None)
             searchInput = oshWordDefEbx.get().strip().lower()
             with conn:
@@ -592,17 +597,17 @@ def open_definition_window():
 
     def submit_definition():
         if newOrUpdateDef.get() == "":
-            return messagebox.showerror(title="Operation unspecified", message="Please choose whether you're updating or adding a new definition.")
+            return messagebox.showerror(parent=defWindow, title="Operation unspecified", message="Please choose whether you're updating or adding a new definition.")
         else:
             if partsOfSpeech.get() == "":
-                return messagebox.showerror(title="Part of speech error", message="No part of speech is selected. Select part of speech of your definition and try again.")
+                return messagebox.showerror(parent=defWindow, title="Part of speech error", message="No part of speech is selected. Select part of speech of your definition and try again.")
             else:
                 if newOrUpdateDef.get() == "new":
-                    messagebox.askyesno(title="Confirm operation", message="You're about to add a {0} definition of '{1}' and '{2}' to {3} category.\n\
+                    messagebox.askyesno(parent=defWindow, title="Confirm operation", message="You're about to add a {0} definition of '{1}' and '{2}' to {3} category.\n\
                     Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord1, definedWord2, partsOfSpeech.get()))
                     add_definition(table=partsOfSpeech.get(), engId=int(engIdDef.get()), oshId=int(oshIdDef.get()), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END))
                 else: #Operation is update
-                    messagebox.askyesno(title="Confirm operation", message="You're about to {0} the definitions of '{1}' and '{2}' in the {3} category. Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord1, definedWord2, partsOfSpeech.get()))
+                    messagebox.askyesno(parent=defWindow, title="Confirm operation", message="You're about to {0} the definitions of '{1}' and '{2}' in the {3} category. Click yes to continue or no to modify your submission.".format(newOrUpdateDef.get(), definedWord1, definedWord2, partsOfSpeech.get()))
                     update_definition(table=partsOfSpeech.get(), engId=int(engIdDef.get()), oshId=int(oshIdDef.get()), engDef=engDefTxt.get('1.0', tk.END), engEx=engExampleTxt.get('1.0', tk.END), oshDef=oshDefTxt.get('1.0', tk.END), oshEx=oshExampleTxt.get('1.0', tk.END), id=int(oshWordDefEbx.get().strip()))
             
     #FRAMES
@@ -922,7 +927,7 @@ def open_main_window():
         elif language == "Oshindonga":
             mainDefinition = find_definition(find_oshindonga_word(searchEbx.get().strip())) #gets word in the entrybox, passes it to find_oshindonga_word(), which is passed to find_definition(), then assigns it to mainDefinition
         else:
-            return messagebox.showerror(title="Input language", message="You did not select an input language.\nSelect the input language and search again.")
+            return messagebox.showerror(parent=mainWindow, title="Input language", message="You did not select an input language.\nSelect the input language and search again.")
         searchedWord.set(searchEbx.get().strip())   #Gets the word in entrybox and assigns it to searchedWord StringVar for display at the top of the text widget
         definitionTxt.delete("1.0", tk.END) #Clears the text widget
         definitionTxt.insert(tk.END, mainDefinition)    #Inserts the value of mainDefinition into the text widget
