@@ -10,8 +10,7 @@ EtoOsh = {'lightning': 'olwaadhi', 'lightnings': 'oombadhi', 'scar': 'oshaadhi',
          'healer': 'omwaaludhi', 'healers': 'aayaludhi', 'nurse': 'omupangi', 'nurses': 'aapangi',
          'medical practitioner': 'omupangi', "medical practitioners": 'aapangi',
          'anthills': 'iiyanda', 'darn': 'oshaando', 'darns': 'iiyando', 'glory': 'eyadhimo', 'splendour':
-         'eyadhimo', 'splendor': 'eyadhimo', 'deliriousness': 'eadhuko', 'scabies': 'olwaga', 'August':
-         'Auguste', 'court': 'ompangu', 'opening': 'omwaka', 'open space': 'ehalala', 'grabbing': 'eakulo',
+         'eyadhimo', 'splendor': 'eyadhimo', 'deliriousness': 'eadhuko', 'scabies': 'olwaga', 'court': 'ompangu', 'opening': 'omwaka', 'open space': 'ehalala', 'grabbing': 'eakulo',
          'buttermilk': 'omaale', 'crucifixion': 'ealelo komushigakano', 'nursing mother': 'omwali', 'healing':
          'ealudho', 'curing': 'ealudho', 'eavesdropping': 'eambelo', 'overhearig': 'eambelo', 'support':
          'eambidhidho', 'America': 'Amerika', 'American': 'Omwaamerika', 'Americans': 'Aamerika', 'secretary':
@@ -57,7 +56,7 @@ EtoOsh = {'lightning': 'olwaadhi', 'lightnings': 'oombadhi', 'scar': 'oshaadhi',
          'on Tuesday': 'mEtiyali', 'on a Tuesday': 'mEtiyali', 'on Tuesdays': 'mOmatiyali', 'farm': 'ofaalama', 'farms':
          'oofaalama', 'introduction': 'efalomo', 'a sale': 'ofanditha', 'the sale': 'ofanditha', 'it"s on sale':
          'oshi li kofanditha', 'it is on sale': 'oshi li kofanditha', 'they are on sale': 'oyi li kofanditha',
-         'sold': 'landitha', 'auctioneer': 'omufandithi', 'a drawing': 'ethano', 'the drawing': 'ethano', 'a picture':
+         'sold': 'landitha', 'a drawing': 'ethano', 'the drawing': 'ethano', 'a picture':
          'ethano', 'the picture': 'ethano', 'picture': 'ethano', 'pictures': 'omathano', 'the pictures': 'omathano',
          'drawings': 'omathano', 'the drawings': 'omathano', 'photogragh': 'ethano', 'a photograph': 'ethano',
          'the photograph': 'ethano', 'the photographs': 'omathano', 'photographs': 'omathano', 'photographer':
@@ -206,11 +205,11 @@ def translateWord(word, dictionary):
 ##print(translate('John, sometimes, eats bread.'))
 ##print(translate('Eric: drinks wine!'))
 ##print(translate('Everyone (likes) 6.00?'))
-loopControl = 'p'
-while loopControl != 'x': #A condition to keep the program looping after a translation
-    EngWord = input('Enter an English word: ')
-    OshWord = translateWord(EngWord, EtoOsh)
-    print(OshWord)
+# loopControl = 'p'
+# while loopControl != 'x': #A condition to keep the program looping after a translation
+#     EngWord = input('Enter an English word: ')
+#     OshWord = translateWord(EngWord, EtoOsh)
+#     print(OshWord)
 
 ##def toChars(s):
 ##    import string
@@ -248,3 +247,4 @@ while loopControl != 'x': #A condition to keep the program looping after a trans
 ##def testFib(n):
 ##    for i in range(n+1):
 ##        print ('fib of', i, '=', fib(i))
+print(list(EtoOsh.keys()))
